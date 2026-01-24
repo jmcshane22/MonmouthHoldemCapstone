@@ -1,0 +1,99 @@
+name: PR Automated Compliance Checks
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - ready_for_review
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  PR: ${{ toJSON(github.event.pull_request) }}
+
+jobs:
+  prepare_scripts:
+    runs-on: ubuntu-latest
+    outputs:
+      scripts-artifact: pr-scripts
+    steps:
+      - uses: actions/checkout@v3
+      - name: Upload PR workflow scripts as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: pr-scripts
+          path: ./pr-workflow-scripts
+
+  ensure_branches:
+    needs: prepare_scripts
+    runs-on: ubuntu-latest
+    outputs:
+      branch_checks: ${{ steps.checks.outputs.branch_checks }}
+    steps:
+      - name: Download scripts artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: pr-scripts
+          path: ./pr-workflow-scripts
+
+      - name: Ensure Branches Compliance
+        id: checks
+        run: |
+          ./pr-workflow-scripts/branches.sh
+
+  ensure_conflicts:
+    needs: ensure_branches
+    if: ${{ needs.ensure_branches.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download scripts artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: pr-scripts
+          path: ./pr-workflow-scripts
+
+      - name: Ensure PR is clear of merge conflicts
+        run: ./pr-workflow-scripts/merge-conflicts.sh
+
+  ensure_assignees_reviewers:
+    needs: [ensure_branches, ensure_conflicts]
+    if: ${{ needs.ensure_branches.result == 'success' && needs.ensure_conflicts.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download scripts artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: pr-scripts
+          path: ./pr-workflow-scripts
+
+      - name: Ensure required assignees and reviewers selected
+        run: |
+          echo "Running user/assignee compliance checks..."
+          ./pr-workflow-scripts/user-checks.sh
+          echo "✅ Assignee/reviewer compliance script completed. See PR comment above or in the PR for details."
+
+  cleanup_labels:
+    needs: [ensure_branches, ensure_conflicts, ensure_assignees_reviewers]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download scripts artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: pr-scripts
+          path: ./pr-workflow-scripts
+
+      - name: Remove PR labels
+        run: ./post-pr-cleanup.sh
+
+  cleanup_artifacts:
+    needs: prepare_scripts
+    if: always()  # Run regardless of previous job success/failure
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete scripts artifact
+        uses: actions/delete-artifact@v3
+        with:
+          name: pr-scripts
