@@ -132,7 +132,8 @@ EOF
 )
 
 echo "$COMMENT_BODY"
-echo "\nPosting automation summary comment"
+echo
+echo "Posting automation summary comment"
 gh pr comment "$PR_NUMBER" \
   --repo "$REPO_FULL_NAME" \
   --body "$COMMENT_BODY"
