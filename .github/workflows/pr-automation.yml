@@ -13,6 +13,7 @@ defaults:
 
 env:
   PR: ${{ toJSON(github.event.pull_request) }}
+  GH_TOKEN: ${{ github.token }}
 
 jobs:
   prepare_scripts:
