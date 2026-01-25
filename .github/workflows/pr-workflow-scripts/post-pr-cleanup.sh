@@ -8,7 +8,7 @@ REPO_FULL_NAME=$(jq -r '.base.repo.full_name' <<< "$PR")
 EXISTING_LABELS=$(gh pr view "$PR_NUMBER" --repo "$REPO_FULL_NAME" --json labels -q '.labels[].name')
 
 LABELS_TO_REMOVE=()
-for label in "needs-attention" "compliance-check-failed"; do
+for label in "needs attention" "compliance check failed"; do
 if grep -qFx "$label" <<< "$EXISTING_LABELS"; then
 LABELS_TO_REMOVE+=("$label")
 fi

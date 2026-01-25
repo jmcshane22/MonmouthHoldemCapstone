@@ -14,7 +14,7 @@ if [[ "$MERGEABLE" == "null" || "$MERGEABLE" == "true" ]]; then
     # Add labels for visibility
   gh pr edit "$PR_NUMBER" \
     --repo "$REPO_FULL_NAME" \
-    --remove-label "conflicts detected"
+    --remove-label "conflicts detected" || true
   exit 0
 fi
 

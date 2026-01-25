@@ -25,7 +25,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: pr-scripts
-          path: ./pr-workflow-scripts
+          path: .github/workflows/pr-workflow-scripts
 
   ensure_branches:
     needs: prepare_scripts
@@ -86,7 +86,7 @@ jobs:
           path: ./pr-workflow-scripts
 
       - name: Remove PR labels
-        run: ./post-pr-cleanup.sh
+        run: ./pr-workflow-scripts/post-pr-cleanup.sh
 
   cleanup_artifacts:
     needs: prepare_scripts

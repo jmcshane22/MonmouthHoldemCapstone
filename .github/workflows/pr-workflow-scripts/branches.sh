@@ -37,7 +37,7 @@ To keep our branching strategy consistent and protect release stability, the fol
 • The source branch **must not be `main`**  
 • Contributions should come from a fork or a non-`main` branch in this repository  
 
-This PR doesn’t currently meet those requirements and is being closed automatically due to failing this complience check.
+This PR doesn’t currently meet those requirements and is being closed automatically due to failing this compliance check.
 
 Please update the branch configuration and reopen this PR, or create a new PR that follows these guidelines. If you believe this was closed in error, feel free to reach out to JD via ping on this PR.
 
@@ -48,7 +48,7 @@ EOF
 # Add compliance label
 gh pr edit "$PR_NUMBER" \
   --repo "$REPO_FULL_NAME" \
-  --add-label "compliance check failed"
+  --add-label "compliance-check-failed"
 
 # Post explanatory comment
 gh pr comment "$PR_NUMBER" \
