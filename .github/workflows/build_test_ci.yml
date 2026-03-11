@@ -51,6 +51,9 @@ jobs:
         run: dotnet build ./src --no-restore --configuration Release --verbosity normal
 
       - name: Ensure no missing EF Migrations
+        env:
+          ConnectionStrings__DataDb: ${{ secrets.EFCORE_FAKE_DBCONNSTR }}
+          ConnectionStrings__DefaultConnection: ${{ secrets.EFCORE_FAKE_DBCONNSTR }}
         run: |
           MIGRATION_NAME="__AutoCheck"
           MIGRATION_STARTUP="./src/MH.Capstone.WebApp"
