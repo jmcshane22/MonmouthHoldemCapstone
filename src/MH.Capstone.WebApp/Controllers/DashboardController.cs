@@ -32,7 +32,7 @@ namespace MH.Capstone.WebApp.Controllers
 
         private readonly IUserService _userService;
 
-        private readonly INotificationService _notificationService;
+        private readonly IInAppNotificationService _notificationService;
 
         private readonly IRepository<Notification, ApplicationDbContext> _notificationRepo;
 
@@ -41,7 +41,7 @@ namespace MH.Capstone.WebApp.Controllers
         // Constructor that injects the logger dependency
         public DashboardController(ILogger<DashboardController> logger, 
             IProfileImageService imageService, IAuthenticationService authService, 
-            IBadgeService badgeService, INotificationService notificationService, 
+            IBadgeService badgeService, IInAppNotificationService notificationService, 
             IUserService userService, IRepository<Notification, ApplicationDbContext> notificationRepo)
         {
             _logger = logger;
@@ -211,6 +211,9 @@ namespace MH.Capstone.WebApp.Controllers
             return View(notifications.ToList());
         }
 
+        // API-Like endpoint to get the count of pending (unread) notifications for the current user.
+        // This can be called via AJAX from the frontend and if called via just the browser, it will
+        // return a JSON response with the count of pending notifications and not a view like normal MVC.
         [HttpGet]
         [Route("/notifications/pending-count")]
         public async Task<IActionResult> GetPendingNotificationsCount()

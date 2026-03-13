@@ -18,6 +18,30 @@ namespace MH.Capstone.Domain.Services.Abstraction
 
         //TODO - Allow for date-range filtering of notifications, and/or pagination of results for users with many notifications.
         /// <summary>
+        /// Gets all notifications - both read and pending - for a user with the specified id.
+        /// </summary>
+        /// <param name="userId">The id of the user to get pending notifications for.</param>
+        /// <returns>
+        /// A <see cref="Task"/> object containing an ><see cref="IEnumerable{T}"/> of <see cref="Notification"/>
+        /// that have been sent to the user. Will be empty if the user has no notifications.
+        /// </returns>
+        Task<IEnumerable<Notification>> GetAllNotificationsAsync(Guid userId);
+
+        /// <summary>
+        /// Gets all notifications - both read and pending - for the passed <see cref="ApplicationUser"/>.
+        /// </summary>
+        /// <param name="user">The <see cref="ApplicationUser"/> to get pending notifications for.</param>
+        /// <returns>
+        /// A <see cref="Task"/> object containing an ><see cref="IEnumerable{T}"/> of <see cref="Notification"/>
+        /// that have been sent to the user. Will be empty if the user has no notifications.
+        /// </returns>
+        Task<IEnumerable<Notification>> GetAllNotificationsAsync(ApplicationUser user);
+    }
+
+    public interface IInAppNotificationService : INotificationService
+    {
+        //TODO - Allow for date-range filtering of notifications, and/or pagination of results for users with many notifications.
+        /// <summary>
         /// Gets all pending notifications for a user with the specified id.
         /// Pending notifications are those that have not yet been read by the intended user.
         /// </summary>
@@ -38,26 +62,15 @@ namespace MH.Capstone.Domain.Services.Abstraction
         /// that have not yet been read by the intended user. Will be empty if the user has no pending notifications.
         /// </returns>
         Task<IEnumerable<Notification>> GetPendingNotificationsAsync(ApplicationUser user);
+    }
 
-        //TODO - Allow for date-range filtering of notifications, and/or pagination of results for users with many notifications.
+    public interface IEmailNotificationService : INotificationService
+    {
         /// <summary>
-        /// Gets all notifications - both read and pending - for a user with the specified id.
+        /// Gets all email notifications that have been "sent to users" (added to the database for sending)
+        /// but have not yet been set as "sent" by the email service.
         /// </summary>
-        /// <param name="userId">The id of the user to get pending notifications for.</param>
-        /// <returns>
-        /// A <see cref="Task"/> object containing an ><see cref="IEnumerable{T}"/> of <see cref="Notification"/>
-        /// that have been sent to the user. Will be empty if the user has no notifications.
-        /// </returns>
-        Task<IEnumerable<Notification>> GetAllNotificationsAsync(Guid userId);
-
-        /// <summary>
-        /// Gets all notifications - both read and pending - for the passed <see cref="ApplicationUser"/>.
-        /// </summary>
-        /// <param name="user">The <see cref="ApplicationUser"/> to get pending notifications for.</param>
-        /// <returns>
-        /// A <see cref="Task"/> object containing an ><see cref="IEnumerable{T}"/> of <see cref="Notification"/>
-        /// that have been sent to the user. Will be empty if the user has no notifications.
-        /// </returns>
-        Task<IEnumerable<Notification>> GetAllNotificationsAsync(ApplicationUser user);
+        /// <returns></returns>
+        Task<IEnumerable<Notification>> GetUnsetEmailNotificationsAsync();
     }
 }

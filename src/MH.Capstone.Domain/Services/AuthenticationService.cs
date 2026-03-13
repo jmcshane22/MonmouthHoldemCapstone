@@ -14,20 +14,20 @@ namespace MH.Capstone.Domain.Services
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
-        private readonly INotificationService _notificationService;
+        private readonly IInAppNotificationService _inAppNotificationService;
         private readonly ILogger<AuthenticationService> _logger;
         private readonly IRepository<ApplicationUser, ApplicationDbContext> _authRepo;
 
         public AuthenticationService(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
-            INotificationService notificationService,
+            IInAppNotificationService inAppInAppNotificationService,
             ILogger<AuthenticationService> logger,
             IRepository<ApplicationUser, ApplicationDbContext> authRepo)
         {
             _userManager = userManager;
             _signInManager = signInManager;
-            _notificationService = notificationService;
+            _inAppNotificationService = inAppInAppNotificationService;
             _logger = logger;
             _authRepo = authRepo;
         }
@@ -52,7 +52,7 @@ namespace MH.Capstone.Domain.Services
             }
 
             // Handle post-registration logic, such as sending a welcome notification
-            await _notificationService.SendNotificationAsync(Notification.Create(user.GuidId, "Welcome to WildlifeAID!",
+            await _inAppNotificationService.SendNotificationAsync(Notification.Create(user.GuidId, "Welcome to WildlifeAID!",
                 "Your account has been successfully created. It's now time to get wild and explore what the great outdoors has to offer!"));
 
             // Add the default User role to new accounts
@@ -204,7 +204,7 @@ namespace MH.Capstone.Domain.Services
 
             // Send a notification about successful login
             var now = DateTimeOffset.UtcNow;
-            await _notificationService.SendNotificationAsync(Notification.Create(user.GuidId, "Successful Login",
+            await _inAppNotificationService.SendNotificationAsync(Notification.Create(user.GuidId, "Successful Login",
                 $"Your account recorded a successful login at {now.ToLocalTime().ToString("g")}. Wasn't you? Reset your password now!",
                 now));
         }

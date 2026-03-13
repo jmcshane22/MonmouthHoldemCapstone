@@ -25,7 +25,7 @@ public class AuthenticationServiceTests
     private Mock<UserManager<ApplicationUser>> _userManagerMock;
 
     private Mock<SignInManager<ApplicationUser>> _signInManagerMock;
-    private Mock<INotificationService> _notificationServiceMock;
+    private Mock<IInAppNotificationService> _inAppNotificationServiceMock;
 
     // MS already has an AuthenticationService, and the compiler needs to know
     // which one to use. So we bring out the full filepath here
@@ -51,14 +51,14 @@ public class AuthenticationServiceTests
             Mock.Of<IAuthenticationSchemeProvider>()
         );
 
-        _notificationServiceMock = new Mock<INotificationService>();
+        _inAppNotificationServiceMock = new Mock<IInAppNotificationService>();
         _userRepoMock = new Mock<IRepository<ApplicationUser, ApplicationDbContext>>();
 
         // Register AuthenticationService
         _authService = new AuthenticationService(
             _userManagerMock.Object,
             _signInManagerMock.Object,
-            _notificationServiceMock.Object,
+            _inAppNotificationServiceMock.Object,
             NullLogger<AuthenticationService>.Instance,
             _userRepoMock.Object
         );
@@ -72,8 +72,8 @@ public class AuthenticationServiceTests
         _signInManagerMock.VerifyAll();
         //_signInManagerMock.VerifyNoOtherCalls();
 
-        _notificationServiceMock.VerifyAll();
-        _notificationServiceMock.VerifyNoOtherCalls();
+        _inAppNotificationServiceMock.VerifyAll();
+        _inAppNotificationServiceMock.VerifyNoOtherCalls();
     }
 
     #endregion
@@ -97,7 +97,7 @@ public class AuthenticationServiceTests
                 It.Is<ApplicationUser>(u => string.Equals(u.Email, email)), "User"))
             .ReturnsAsync(IdentityResult.Success).Verifiable(Times.Once);
 
-        _notificationServiceMock.Setup(s => s.SendNotificationAsync(
+        _inAppNotificationServiceMock.Setup(s => s.SendNotificationAsync(
             It.IsAny<Notification>())).Verifiable(Times.Once);
 
         // ACT - Try to register the user ********************
