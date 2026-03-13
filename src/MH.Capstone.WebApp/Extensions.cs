@@ -24,7 +24,8 @@ namespace MH.Capstone.WebApp
                 DefaultProfileImageUrl; // Default profile image URL for users without a custom profile image (or null user obj).
         }
 
-        internal static async Task<int> GetPendingNotificationsCountAsync(this INotificationService service, ApplicationUser? user)
+        internal static async Task<int> GetPendingNotificationsCountAsync(this IInAppNotificationService service, 
+            ApplicationUser? user)
         {
             if (user == null)
             {

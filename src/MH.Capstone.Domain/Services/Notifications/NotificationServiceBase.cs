@@ -32,23 +32,6 @@ namespace MH.Capstone.Domain.Services.Notifications
         // Abstract method since the actual implementation will depend on the specific type of notification
         // service (ie email, in-app, sms, etc.)
         public abstract Task SendNotificationAsync(Notification notification);
-        
-        public async Task<IEnumerable<Notification>> GetPendingNotificationsAsync(Guid userId)
-        {
-            var user = await _userService.GetUserByIdAsync(userId);
-            if (user == null)
-            {
-                throw new ArgumentException($"User with id {userId} not found", nameof(userId));
-            }
-
-            return await GetPendingNotificationsAsync(user);
-        }
-
-        public async Task<IEnumerable<Notification>> GetPendingNotificationsAsync(ApplicationUser user)
-            => await HandleSqlErrors(_notificationRepo.GetAllAsync(n =>
-                n.LinkedUserIdentityId == user.GuidId.ToString() && !n.IsRead));
-                //ModelHelpers.IsLinkedToUserExpression<Notification>(user.GuidId)
-                //    .AndAlso(n => !n.IsRead)));
 
         public async Task<IEnumerable<Notification>> GetAllNotificationsAsync(Guid userId)
         {
@@ -64,8 +47,6 @@ namespace MH.Capstone.Domain.Services.Notifications
         public async Task<IEnumerable<Notification>> GetAllNotificationsAsync(ApplicationUser user)
             => await HandleSqlErrors(_notificationRepo.GetAllAsync(n => 
                 n.LinkedUserIdentityId == user.GuidId.ToString()));
-
-        //ModelHelpers.IsLinkedToUserExpression<Notification>(user.GuidId))
 
         protected static async Task<TOut> HandleSqlErrors<TOut>(Task<TOut> repoCmd, string? paramName = null)
         {

@@ -14,7 +14,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MH.Capstone.Domain.Services.Notifications
 {
-    public class InAppNotificationService : NotificationServiceBase
+    public class InAppNotificationService : NotificationServiceBase, IInAppNotificationService
     {
         public InAppNotificationService(IRepository<Notification, ApplicationDbContext> repo,
             IUserService userService, ILogger<INotificationService> logger) 
@@ -38,5 +38,20 @@ namespace MH.Capstone.Domain.Services.Notifications
 
             await HandleSqlErrors(_notificationRepo.AddOrUpdateAsync(notification),nameof(notification));
         }
+
+        public async Task<IEnumerable<Notification>> GetPendingNotificationsAsync(Guid userId)
+        {
+            var user = await _userService.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                throw new ArgumentException($"User with id {userId} not found", nameof(userId));
+            }
+
+            return await GetPendingNotificationsAsync(user);
+        }
+
+        public async Task<IEnumerable<Notification>> GetPendingNotificationsAsync(ApplicationUser user)
+            => await HandleSqlErrors(_notificationRepo.GetAllAsync(n =>
+                n.LinkedUserIdentityId == user.GuidId.ToString() && !n.IsRead));
     }
 }

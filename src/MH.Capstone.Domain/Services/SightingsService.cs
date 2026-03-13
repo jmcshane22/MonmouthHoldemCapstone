@@ -16,11 +16,14 @@ namespace MH.Capstone.Domain.Services
         private readonly IRepository<Sighting, ApplicationDbContext> _sightingsRepo;
         private readonly IRepository<ApplicationUser, ApplicationDbContext> _userRepo;
         private readonly IScoringService _scoringService;
-        private readonly INotificationService _notificationService;
+        private readonly IInAppNotificationService _inAppNotificationService;
 
-        public SightingsService(
-            ILogger<SightingsService> logger, IScoringService scoringService,
-            INotificationService notificationService,
+        // To update user account with Badge on first upload
+        private readonly IBadgeService _badgeService;
+
+        public SightingsService(ILogger<SightingsService> logger, 
+            IBadgeService badgeService, IScoringService scoringService, 
+            IInAppNotificationService inAppNotificationService,
             IRepository<Sighting, ApplicationDbContext> sightingsRepo,
             IRepository<ApplicationUser, ApplicationDbContext> userRepo)
         {
@@ -28,7 +31,8 @@ namespace MH.Capstone.Domain.Services
             _sightingsRepo = sightingsRepo;
             _scoringService = scoringService;
             _userRepo = userRepo;
-            _notificationService = notificationService;
+            _inAppNotificationService = inAppNotificationService;
+            _badgeService = badgeService;
         }
 
         public async Task<int> CreateSightingAsync(Sighting entity, string ianaTimeZoneId = "America/Los_Angeles")
@@ -81,7 +85,7 @@ namespace MH.Capstone.Domain.Services
                     // Generate the notification with the correct AM/PM and 12-hour format
                     string timeDisplay = deviceTime.ToString("MM/dd/yyyy h:mm tt");
 
-                    await _notificationService.SendNotificationAsync(Notification.Create(user.GuidId,
+                    await _inAppNotificationService.SendNotificationAsync(Notification.Create(user.GuidId,
                         "New Sighting Uploaded & Created!",
                         $"Congratulations! You uploaded a new sighting at {timeDisplay} and " +
                         $"earned {pointsEarned} points!"

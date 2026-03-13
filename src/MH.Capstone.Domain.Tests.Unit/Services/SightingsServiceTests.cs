@@ -24,7 +24,8 @@ public class SightingsServiceTests
 {
     private Sighting _validSighting;
     private Mock<IScoringService> _scoringServiceMock;
-    private Mock<INotificationService> _notificationServiceMock;
+    private Mock<IInAppNotificationService> _inAppNotificationServiceMock;
+    private Mock<IBadgeService> _badgeServiceMock;
     private Mock<IRepository<Sighting, ApplicationDbContext>> _sightingsRepoMock;
     private Mock<IRepository<ApplicationUser, ApplicationDbContext>> _userRepoMock;
     private FakeImageGenerator _imageGenerator;
@@ -37,7 +38,7 @@ public class SightingsServiceTests
         _validSighting = SightingValidValuesSource.DefaultValidSighting;
         _sightingsRepoMock = new Mock<IRepository<Sighting, ApplicationDbContext>>();
         _scoringServiceMock = new Mock<IScoringService>();
-        _notificationServiceMock = new Mock<INotificationService>();
+        _inAppNotificationServiceMock = new Mock<IInAppNotificationService>();
         _userRepoMock = new Mock<IRepository<ApplicationUser, ApplicationDbContext>>();
     }
 
@@ -50,7 +51,7 @@ public class SightingsServiceTests
     private SightingsService CreateSut() =>
         new (NullLogger<SightingsService>.Instance,
             _scoringServiceMock.Object,
-            _notificationServiceMock.Object,
+            _inAppNotificationServiceMock.Object,
             _sightingsRepoMock.Object,
             _userRepoMock.Object);
 
@@ -60,14 +61,14 @@ public class SightingsServiceTests
         // Asserts that the methods that were set up in the Moq were called in ways that we set up
         _sightingsRepoMock.VerifyAll();
         _scoringServiceMock.VerifyAll();
-        _notificationServiceMock.VerifyAll();
+        _inAppNotificationServiceMock.VerifyAll();
         _userRepoMock.VerifyAll();
 
         // Asserts that the Moq mocks were only called in ways that we set up with the Setup method,
         // failing if any method was called that was not set up
         _sightingsRepoMock.VerifyNoOtherCalls();
         _scoringServiceMock.VerifyNoOtherCalls();
-        _notificationServiceMock.VerifyNoOtherCalls();
+        _inAppNotificationServiceMock.VerifyNoOtherCalls();
         _userRepoMock.VerifyNoOtherCalls();
     }
 
@@ -107,7 +108,7 @@ public class SightingsServiceTests
                 u.Points == pointsValue)))
             .Verifiable(Times.Once);
 
-        _notificationServiceMock.Setup(s => s.SendNotificationAsync(
+        _inAppNotificationServiceMock.Setup(s => s.SendNotificationAsync(
             It.Is<Notification>(n => n.RecipientId == sighting.UserId)))
             .Verifiable(Times.Once);
 
@@ -149,7 +150,7 @@ public class SightingsServiceTests
                                             u.Points == pointsValue)))
             .Verifiable(Times.Once);
 
-        _notificationServiceMock.Setup(s => s.SendNotificationAsync(
+        _inAppNotificationServiceMock.Setup(s => s.SendNotificationAsync(
                 It.Is<Notification>(n => n.RecipientId == sighting.UserId)))
             .Verifiable(Times.Once);
 
