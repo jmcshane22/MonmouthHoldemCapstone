@@ -39,6 +39,7 @@ public class SightingsServiceTests
         _sightingsRepoMock = new Mock<IRepository<Sighting, ApplicationDbContext>>();
         _scoringServiceMock = new Mock<IScoringService>();
         _inAppNotificationServiceMock = new Mock<IInAppNotificationService>();
+        _badgeServiceMock = new Mock<IBadgeService>();
         _userRepoMock = new Mock<IRepository<ApplicationUser, ApplicationDbContext>>();
     }
 
@@ -50,6 +51,7 @@ public class SightingsServiceTests
 
     private SightingsService CreateSut() =>
         new (NullLogger<SightingsService>.Instance,
+            _badgeServiceMock.Object,
             _scoringServiceMock.Object,
             _inAppNotificationServiceMock.Object,
             _sightingsRepoMock.Object,
