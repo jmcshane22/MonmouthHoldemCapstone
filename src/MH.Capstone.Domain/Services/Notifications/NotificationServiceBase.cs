@@ -15,14 +15,14 @@ using System.Threading.Tasks;
 
 namespace MH.Capstone.Domain.Services.Notifications
 {
-    public abstract class NotificationServiceBase : INotificationService
+    public abstract class NotificationServiceBase<T> : INotificationService<T> where T : Notification, new()
     {
-        protected readonly IRepository<Notification, ApplicationDbContext> _notificationRepo;
+        protected readonly IRepository<T, ApplicationDbContext> _notificationRepo;
         protected readonly IUserService _userService;
-        protected readonly ILogger<INotificationService> _logger;
+        protected readonly ILogger<INotificationService<T>> _logger;
 
-        protected NotificationServiceBase(IRepository<Notification, ApplicationDbContext> repo,
-            IUserService userService, ILogger<INotificationService> logger)
+        protected NotificationServiceBase(IRepository<T, ApplicationDbContext> repo,
+            IUserService userService, ILogger<INotificationService<T>> logger)
         {
             _notificationRepo = repo;
             _userService = userService;
@@ -31,9 +31,9 @@ namespace MH.Capstone.Domain.Services.Notifications
 
         // Abstract method since the actual implementation will depend on the specific type of notification
         // service (ie email, in-app, sms, etc.)
-        public abstract Task SendNotificationAsync(Notification notification);
+        public abstract Task SendNotificationAsync(T notification);
 
-        public async Task<IEnumerable<Notification>> GetAllNotificationsAsync(Guid userId)
+        public async Task<IEnumerable<T>> GetAllNotificationsAsync(Guid userId)
         {
             var user = await _userService.GetUserByIdAsync(userId);
             if (user == null)
@@ -44,7 +44,7 @@ namespace MH.Capstone.Domain.Services.Notifications
             return await GetAllNotificationsAsync(user);
         }
 
-        public async Task<IEnumerable<Notification>> GetAllNotificationsAsync(ApplicationUser user)
+        public async Task<IEnumerable<T>> GetAllNotificationsAsync(ApplicationUser user)
             => await HandleSqlErrors(_notificationRepo.GetAllAsync(n => 
                 n.LinkedUserIdentityId == user.GuidId.ToString()));
 
