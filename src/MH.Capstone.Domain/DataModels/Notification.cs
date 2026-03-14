@@ -7,6 +7,9 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using MH.Capstone.Domain.Tools;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace MH.Capstone.Domain.DataModels
@@ -45,11 +48,6 @@ namespace MH.Capstone.Domain.DataModels
         [Required] 
         public DateTimeOffset SentAt { get; set; }
 
-        public bool IsRead { get; set; } = false;
-
-        [NotMapped] 
-        public bool IsPostdated => SentAt.UtcDateTime > DateTime.UtcNow;
-
         [JsonIgnore]
         public virtual ApplicationUser Recipient { get; set; } = null!;
 
@@ -81,7 +79,7 @@ namespace MH.Capstone.Domain.DataModels
         }
 
         /// <summary>
-        /// Sends a notification to a recipient (<see cref="ApplicationUser"/>) with the specified title and message,
+        /// Creates a notification to a recipient (<see cref="ApplicationUser"/>) with the specified title and message,
         /// and an optional sentAt timestamp if not sent at the current time and date.
         /// </summary>
         /// <param name="recipientId">The id (<see cref="Guid"/>) of the recipient (<see cref="ApplicationUser"/>) to send the notification to</param>
@@ -95,5 +93,46 @@ namespace MH.Capstone.Domain.DataModels
             sentAt ??= DateTimeOffset.UtcNow;
             return new Notification(recipientId, title, message, (DateTimeOffset)sentAt);
         }
+    }
+
+    [Table("EmailNotification")]
+    public class EmailNotification : Notification
+    {
+        public DateTimeOffset? DeliveredAt { get; set; } = null;
+
+        public DateTimeOffset? LastFailure { get; set; } = null;
+
+        [Range(0, 3)] // Allow at most 3 failures before giving up on sending the email notification.
+        public int FailureCount { get; set; } = 0;
+
+        // For EF Core materialization of entities from the database, we need to include a parameterless constructor.
+        public EmailNotification() { }
+        
+        public EmailNotification(Guid recipientId, string title, string message, DateTimeOffset sentAt) 
+            : base(recipientId, title, message, sentAt)
+        { }
+
+        public EmailNotification(Notification baseNotification) : base(baseNotification.Id, 
+            baseNotification.RecipientId, baseNotification.Title, baseNotification.Message, 
+            baseNotification.SentAt)
+        { }
+    }
+
+    [Table("InAppNotification")]
+    public class InAppNotification : Notification
+    {
+        public bool IsRead { get; set; } = false;
+
+        // For EF Core materialization of entities from the database, we need to include a parameterless constructor.
+        public InAppNotification() { }
+        
+        public InAppNotification(Guid recipientId, string title, string message, DateTimeOffset sentAt) 
+            : base(recipientId, title, message, sentAt)
+        { }
+
+        public InAppNotification(Notification baseNotification) : base(baseNotification.Id, 
+            baseNotification.RecipientId, baseNotification.Title, baseNotification.Message, 
+            baseNotification.SentAt)
+        { }
     }
 }
