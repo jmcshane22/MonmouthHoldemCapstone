@@ -17,13 +17,13 @@ namespace MH.Capstone.Domain.Tests.Unit.Services;
 public class ReportServiceTests
 {
     private Mock<IRepository<Report, ApplicationDbContext>> _reportRepoMock;
-    private Mock<INotificationService> _notificationServiceMock;
+    private Mock<IInAppNotificationService> _notificationServiceMock;
 
     [SetUp]
     public void Setup()
     {
         _reportRepoMock = new Mock<IRepository<Report, ApplicationDbContext>>();
-        _notificationServiceMock = new Mock<INotificationService>();
+        _notificationServiceMock = new Mock<IInAppNotificationService>();
     }
 
     private ReportService CreateSut() => new(
@@ -57,7 +57,7 @@ public class ReportServiceTests
             .Verifiable(Times.Once);
 
         _notificationServiceMock.Setup(n => n.SendNotificationAsync(
-                It.Is<Notification>(notif => notif.RecipientId == userId)))
+                It.Is<InAppNotification>(notif => notif.RecipientId == userId)))
             .Verifiable(Times.Once);
 
         var sut = CreateSut();
@@ -123,7 +123,7 @@ public class ReportServiceTests
 
         // notification must go to the reporting user
         _notificationServiceMock.Setup(n => n.SendNotificationAsync(
-                It.Is<Notification>(notif => notif.RecipientId == userId)))
+                It.Is<InAppNotification>(notif => notif.RecipientId == userId)))
             .Verifiable(Times.Once);
 
         var sut = CreateSut();

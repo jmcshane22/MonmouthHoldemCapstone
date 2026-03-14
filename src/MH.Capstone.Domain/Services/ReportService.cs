@@ -11,14 +11,14 @@ namespace MH.Capstone.Domain.Services
     public class ReportService : IReportService
     {
         private readonly IRepository<Report, ApplicationDbContext> _reportRepo;
-        private readonly INotificationService _notificationService;
+        //private readonly INotificationService _notificationService;
 
         public ReportService(
             IRepository<Report, ApplicationDbContext> reportRepo,
-            INotificationService notificationService)
+            IInAppNotificationService notificationService)
         {
             _reportRepo = reportRepo;
-            _notificationService = notificationService;
+            //_notificationService = notificationService;
         }
 
         public async Task<bool> SubmitReportAsync(Report report)
@@ -36,11 +36,11 @@ namespace MH.Capstone.Domain.Services
                 await _reportRepo.AddOrUpdateAsync(report);
 
                 // notification to the reporting user
-                await _notificationService.SendNotificationAsync(Notification.Create(
-                    report.ReportingUserId,
-                    "Report Received",
-                    $"Thank you. Your report for '{report.ReportedPageUrl}' has been received and is under review."
-                ));
+                //await _notificationService.SendNotificationAsync(Notification.Create(
+                //    report.ReportingUserId,
+                //    "Report Received",
+                //    $"Thank you. Your report for '{report.ReportedPageUrl}' has been received and is under review."
+                //));
 
                 return true;
             }
