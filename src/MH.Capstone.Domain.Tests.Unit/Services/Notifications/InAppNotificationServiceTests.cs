@@ -309,72 +309,6 @@ namespace MH.Capstone.Domain.Tests.Unit.Services.Notifications
             AssertAllMockVerifications();
         }
 
-        #endregion
-        #region GetAllNotificationsAsyncTests
-
-        private static Expression<Func<Notification, bool>> CreateAllNotificationTestExpression(Guid userId)
-            => n => n.LinkedUserIdentityId == userId.ToString();
-
-        [Test]
-        public async Task GetAllNotificationsAsyncGuidId_HasNoNotifications_ReturnsTaskWithEmptyEnumerable()
-        {
-            // Arrange
-            var userToAssert = new ApplicationUser
-            {
-                GuidId = Guid.NewGuid()
-            };
-            var testExpression = CreateAllNotificationTestExpression(userToAssert.GuidId);
-
-            _mockUserService.Setup(s =>
-                s.GetUserByIdAsync(It.Is<Guid>(id => id == userToAssert.GuidId)))
-                .ReturnsAsync(userToAssert).Verifiable(Times.Once);
-
-            _mockNotificationRepository.Setup(r =>
-                    r.GetAllAsync(
-                        It.Is<Expression<Func<InAppNotification, bool>>>(
-                            e => Lambda.ExpressionsEqual(e, testExpression))
-                    ))
-                .ReturnsAsync(Enumerable.Empty<InAppNotification>().AsQueryable())
-                .Verifiable(Times.Once);
-
-            // Act
-            var sut = CreateSut();
-            var result = (await sut.GetAllNotificationsAsync(userToAssert.GuidId)).ToList();
-
-            // Assert
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result, Is.Empty);
-            AssertAllMockVerifications();
-        }
-
-        [Test]
-        public async Task GetAllNotificationsAsyncUserModel_HasNoNotifications_ReturnsTaskWithEmptyEnumerable()
-        {
-            // Arrange
-            var user = new ApplicationUser
-            {
-                GuidId = Guid.NewGuid()
-            };
-            var testExpression = CreateAllNotificationTestExpression(user.GuidId);
-
-            _mockNotificationRepository.Setup(r =>
-                    r.GetAllAsync(
-                        It.Is<Expression<Func<InAppNotification, bool>>>(
-                            e => Lambda.ExpressionsEqual(e, testExpression))
-                    ))
-                .ReturnsAsync(Enumerable.Empty<InAppNotification>().AsQueryable())
-                .Verifiable(Times.Once);
-
-            // Act
-            var sut = CreateSut();
-            var result = (await sut.GetAllNotificationsAsync(user)).ToList();
-
-            // Assert
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result, Is.Empty);
-            AssertAllMockVerifications();
-        }
-
         [Test]
         public async Task GetPendingNotificationsAsyncGuidId_HasNotifications_ReturnsTaskWithEnumerableOfNotifications()
         {
@@ -388,7 +322,7 @@ namespace MH.Capstone.Domain.Tests.Unit.Services.Notifications
                 NotificationValidValuesSource.GetValidInAppNotification(userToAssert.GuidId),
                 NotificationValidValuesSource.GetValidInAppNotification(userToAssert.GuidId, true)
             };
-            var testExpression = CreateAllNotificationTestExpression(userToAssert.GuidId);
+            var testExpression = CreatePendingNotificationTestExpression(userToAssert.GuidId);
 
             _mockUserService.Setup(s =>
                     s.GetUserByIdAsync(It.Is<Guid>(id => id == userToAssert.GuidId)))
@@ -404,7 +338,7 @@ namespace MH.Capstone.Domain.Tests.Unit.Services.Notifications
 
             // Act
             var sut = CreateSut();
-            var result = (await sut.GetAllNotificationsAsync(userToAssert.GuidId)).ToList();
+            var result = (await sut.GetPendingNotificationsAsync(userToAssert.GuidId)).ToList();
 
             // Assert
             Assert.That(result, Is.Not.Null);
@@ -429,7 +363,7 @@ namespace MH.Capstone.Domain.Tests.Unit.Services.Notifications
                 NotificationValidValuesSource.GetValidInAppNotification(user.GuidId),
                 NotificationValidValuesSource.GetValidInAppNotification(user.GuidId, true)
             };
-            var testExpression = CreateAllNotificationTestExpression(user.GuidId);
+            var testExpression = CreatePendingNotificationTestExpression(user.GuidId);
 
             _mockNotificationRepository.Setup(r =>
                     r.GetAllAsync(
@@ -441,7 +375,7 @@ namespace MH.Capstone.Domain.Tests.Unit.Services.Notifications
 
             // Act
             var sut = CreateSut();
-            var result = (await sut.GetAllNotificationsAsync(user)).ToList();
+            var result = (await sut.GetPendingNotificationsAsync(user)).ToList();
 
             // Assert
             Assert.That(result, Is.Not.Null);
@@ -453,52 +387,6 @@ namespace MH.Capstone.Domain.Tests.Unit.Services.Notifications
             AssertAllMockVerifications();
         }
 
-        [Test]
-        public void GetAllNotificationsAsyncGuidId_UserIdNotFound_ReturnsFailedTaskThrowingArgumentException()
-        {
-            // Arrange
-            var userId = Guid.NewGuid();
-
-            _mockUserService.Setup(s =>
-                    s.UserExistsAsync(userId.ToString()))
-                .ReturnsAsync(false).Verifiable(Times.Once);
-
-            // Act
-            var sut = CreateSut();
-
-            // Assert
-            Assert.ThrowsAsync<ArgumentException>(() => sut.GetAllNotificationsAsync(userId));
-            AssertAllMockVerifications();
-        }
-
-        [Test]
-        public void GetAllNotificationsAsyncUserModel_UserIdNotFound_ReturnsFailedTaskThrowingArgumentException()
-        {
-            // Arrange
-            var user = new ApplicationUser
-            {
-                GuidId = Guid.NewGuid()
-            };
-            var testExpression = CreateAllNotificationTestExpression(user.GuidId);
-
-            _mockNotificationRepository.Setup(r =>
-                r.GetAllAsync(
-                    It.Is<Expression<Func<InAppNotification, bool>>>(
-                        e => Lambda.ExpressionsEqual(e, testExpression))
-                ))
-                .ThrowsAsync(new SqlExceptionBuilder().WithNumber(
-                    (int)SqlErrorNumber.ForeignKeyConstraintViolation).Build())
-                .Verifiable(Times.Once);
-
-            // Act
-            var sut = CreateSut();
-
-            // Assert
-            Assert.ThrowsAsync<ArgumentException>(() => sut.GetAllNotificationsAsync(user));
-            AssertAllMockVerifications();
-        }
-
         #endregion
-
     }
 }

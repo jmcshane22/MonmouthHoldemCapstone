@@ -46,7 +46,7 @@ namespace MH.Capstone.Domain.Services.Notifications
 
         public async Task<IEnumerable<T>> GetAllNotificationsAsync(ApplicationUser user)
             => await HandleSqlErrors(_notificationRepo.GetAllAsync(n => 
-                n.LinkedUserIdentityId == user.GuidId.ToString()));
+                n.LinkedUserIdentityId == user.GuidId.ToString()), nameof(user.GuidId));
 
         protected static async Task<TOut> HandleSqlErrors<TOut>(Task<TOut> repoCmd, string? paramName = null)
         {
