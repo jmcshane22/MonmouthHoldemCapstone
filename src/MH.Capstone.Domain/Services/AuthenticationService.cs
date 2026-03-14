@@ -52,8 +52,8 @@ namespace MH.Capstone.Domain.Services
             }
 
             // Handle post-registration logic, such as sending a welcome notification
-            await _inAppNotificationService.SendNotificationAsync(Notification.Create(user.GuidId, "Welcome to WildlifeAID!",
-                "Your account has been successfully created. It's now time to get wild and explore what the great outdoors has to offer!"));
+            //await _inAppNotificationService.SendNotificationAsync(Notification.Create(user.GuidId, "Welcome to WildlifeAID!",
+            //    "Your account has been successfully created. It's now time to get wild and explore what the great outdoors has to offer!"));
 
             // Add the default User role to new accounts
             await _userManager.AddToRoleAsync(user, "User");
@@ -204,9 +204,9 @@ namespace MH.Capstone.Domain.Services
 
             // Send a notification about successful login
             var now = DateTimeOffset.UtcNow;
-            await _inAppNotificationService.SendNotificationAsync(Notification.Create(user.GuidId, "Successful Login",
-                $"Your account recorded a successful login at {now.ToLocalTime().ToString("g")}. Wasn't you? Reset your password now!",
-                now));
+            //await _inAppNotificationService.SendNotificationAsync(Notification.Create(user.GuidId, "Successful Login",
+            //    $"Your account recorded a successful login at {now.ToLocalTime().ToString("g")}. Wasn't you? Reset your password now!",
+            //    now));
         }
 
         public async Task SignOutUserAsync(HttpContext httpContext)

@@ -85,11 +85,11 @@ namespace MH.Capstone.Domain.Services
                     // Generate the notification with the correct AM/PM and 12-hour format
                     string timeDisplay = deviceTime.ToString("MM/dd/yyyy h:mm tt");
 
-                    await _inAppNotificationService.SendNotificationAsync(Notification.Create(user.GuidId,
-                        "New Sighting Uploaded & Created!",
-                        $"Congratulations! You uploaded a new sighting at {timeDisplay} and " +
-                        $"earned {pointsEarned} points!"
-                        ));
+                    //await _inAppNotificationService.SendNotificationAsync(Notification.Create(user.GuidId,
+                    //    "New Sighting Uploaded & Created!",
+                    //    $"Congratulations! You uploaded a new sighting at {timeDisplay} and " +
+                    //    $"earned {pointsEarned} points!"
+                    //    ));
                     _logger.LogInformation("Awarded {Points} points to user {UserId} for sighting", pointsEarned, entity.UserId);
                     // AM and PM display mismatch?
                     _logger.LogInformation("Raw DB Timestamp: {Raw}", entity.Timestamp);

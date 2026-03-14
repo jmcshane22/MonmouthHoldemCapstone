@@ -1,3 +1,4 @@
+@using MH.Capstone.Domain.DataModels
 @inject Microsoft.AspNetCore.Identity.UserManager<MH.Capstone.Domain.DataModels.ApplicationUser> _userManager
 @{
     ViewData["Title"] = "Dashboard";
@@ -98,7 +99,7 @@
                     </h5>
                     <button class="btn btnDark position-relative" onclick="window.location = '@Url.Action("Notifications", "Dashboard")'">
                         View your Notifications
-                        @if (user != null && user.Notifications.Exists(n => !n.IsRead))
+                        @if (user != null && user.Notifications.Exists(n => n is InAppNotification { IsRead: false }))
                         {
                             <span class="position-absolute top-0 start-100 translate-middle p-2 bg-danger border border-light rounded-circle">
                                 <span class="visually-hidden">Unread notifications</span>

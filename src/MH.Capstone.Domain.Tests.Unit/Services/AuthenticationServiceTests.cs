@@ -98,7 +98,7 @@ public class AuthenticationServiceTests
             .ReturnsAsync(IdentityResult.Success).Verifiable(Times.Once);
 
         _inAppNotificationServiceMock.Setup(s => s.SendNotificationAsync(
-            It.IsAny<Notification>())).Verifiable(Times.Once);
+            It.IsAny<InAppNotification>())).Verifiable(Times.Once);
 
         // ACT - Try to register the user ********************
         var result = await _authService.RegisterUserAsync(email, password);

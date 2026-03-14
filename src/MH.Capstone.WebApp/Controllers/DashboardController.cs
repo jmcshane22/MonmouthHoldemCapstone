@@ -34,7 +34,7 @@ namespace MH.Capstone.WebApp.Controllers
 
         private readonly IInAppNotificationService _notificationService;
 
-        private readonly IRepository<Notification, ApplicationDbContext> _notificationRepo;
+        private readonly IRepository<InAppNotification, ApplicationDbContext> _notificationRepo;
 
         private readonly IBadgeService _badgeService;
 
@@ -42,7 +42,7 @@ namespace MH.Capstone.WebApp.Controllers
         public DashboardController(ILogger<DashboardController> logger, 
             IProfileImageService imageService, IAuthenticationService authService, 
             IBadgeService badgeService, IInAppNotificationService notificationService, 
-            IUserService userService, IRepository<Notification, ApplicationDbContext> notificationRepo)
+            IUserService userService, IRepository<InAppNotification, ApplicationDbContext> notificationRepo)
         {
             _logger = logger;
             _imageService = imageService;

@@ -21,7 +21,7 @@ public class DashboardControllerTests
     private Mock<IUserService> _mockUserService;
     private Mock<IProfileImageService> _mockProfileImageService;
     private Mock<IInAppNotificationService> _mockNotificationService;
-    private Mock<IRepository<Notification, ApplicationDbContext>> _mockNotificationRepo;
+    private Mock<IRepository<InAppNotification, ApplicationDbContext>> _mockNotificationRepo;
     private Mock<ILogger<DashboardController>> _mockLogger;
     private DashboardController _controller;
     private Mock<IBadgeService> _mockBadgeService;
@@ -35,7 +35,7 @@ public class DashboardControllerTests
         _mockLogger = new Mock<ILogger<DashboardController>>();
         _mockUserService = new Mock<IUserService>();
         _mockNotificationService = new Mock<IInAppNotificationService>();
-        _mockNotificationRepo = new Mock<IRepository<Notification, ApplicationDbContext>>();
+        _mockNotificationRepo = new Mock<IRepository<InAppNotification, ApplicationDbContext>>();
         _mockBadgeService = new Mock<IBadgeService>();
 
         _controller = new DashboardController(_mockLogger.Object,
