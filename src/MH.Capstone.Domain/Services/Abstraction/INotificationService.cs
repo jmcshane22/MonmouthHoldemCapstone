@@ -7,14 +7,14 @@ using MH.Capstone.Domain.DataModels;
 
 namespace MH.Capstone.Domain.Services.Abstraction
 {
-    public interface INotificationService
+    public interface INotificationService<T> where T : Notification
     {
         /// <summary>
-        /// Send a notification to a <see cref="ApplicationUser"/> that is defined within the <see cref="Notification"/> argument.
+        /// Send a notification to a <see cref="ApplicationUser"/> that is defined within the <see cref="T"/> argument.
         /// </summary>
-        /// <param name="notification">The <see cref="Notification"/> to send</param>
+        /// <param name="notification">The <see cref="T"/> to send</param>
         /// <returns>A <see cref="Task"/> object representing the async task for this method</returns>
-        Task SendNotificationAsync(Notification notification);
+        Task SendNotificationAsync(T notification);
 
         //TODO - Allow for date-range filtering of notifications, and/or pagination of results for users with many notifications.
         /// <summary>
@@ -22,23 +22,23 @@ namespace MH.Capstone.Domain.Services.Abstraction
         /// </summary>
         /// <param name="userId">The id of the user to get pending notifications for.</param>
         /// <returns>
-        /// A <see cref="Task"/> object containing an ><see cref="IEnumerable{T}"/> of <see cref="Notification"/>
+        /// A <see cref="Task"/> object containing an ><see cref="IEnumerable{T}"/> of <see cref="T"/>
         /// that have been sent to the user. Will be empty if the user has no notifications.
         /// </returns>
-        Task<IEnumerable<Notification>> GetAllNotificationsAsync(Guid userId);
+        Task<IEnumerable<T>> GetAllNotificationsAsync(Guid userId);
 
         /// <summary>
         /// Gets all notifications - both read and pending - for the passed <see cref="ApplicationUser"/>.
         /// </summary>
         /// <param name="user">The <see cref="ApplicationUser"/> to get pending notifications for.</param>
         /// <returns>
-        /// A <see cref="Task"/> object containing an ><see cref="IEnumerable{T}"/> of <see cref="Notification"/>
+        /// A <see cref="Task"/> object containing an ><see cref="IEnumerable{T}"/> of <see cref="T"/>
         /// that have been sent to the user. Will be empty if the user has no notifications.
         /// </returns>
-        Task<IEnumerable<Notification>> GetAllNotificationsAsync(ApplicationUser user);
+        Task<IEnumerable<T>> GetAllNotificationsAsync(ApplicationUser user);
     }
 
-    public interface IInAppNotificationService : INotificationService
+    public interface IInAppNotificationService : INotificationService<InAppNotification>
     {
         //TODO - Allow for date-range filtering of notifications, and/or pagination of results for users with many notifications.
         /// <summary>
@@ -47,10 +47,10 @@ namespace MH.Capstone.Domain.Services.Abstraction
         /// </summary>
         /// <param name="userId">The id of the user to get pending notifications for.</param>
         /// <returns>
-        /// A <see cref="Task"/> object containing an ><see cref="IEnumerable{T}"/> of <see cref="Notification"/>
+        /// A <see cref="Task"/> object containing an ><see cref="IEnumerable{T}"/> of <see cref="InAppNotification"/>
         /// that have not yet been read by the intended user. Will be empty if the user has no pending notifications.
         /// </returns>
-        Task<IEnumerable<Notification>> GetPendingNotificationsAsync(Guid userId);
+        Task<IEnumerable<InAppNotification>> GetPendingNotificationsAsync(Guid userId);
 
         /// <summary>
         /// Gets all pending notifications for the passed <see cref="ApplicationUser"/>.
@@ -58,19 +58,30 @@ namespace MH.Capstone.Domain.Services.Abstraction
         /// </summary>
         /// <param name="user">The <see cref="ApplicationUser"/> to get pending notifications for.</param>
         /// <returns>
-        /// A <see cref="Task"/> object containing an ><see cref="IEnumerable{T}"/> of <see cref="Notification"/>
+        /// A <see cref="Task"/> object containing an ><see cref="IEnumerable{T}"/> of <see cref="InAppNotification"/>
         /// that have not yet been read by the intended user. Will be empty if the user has no pending notifications.
         /// </returns>
-        Task<IEnumerable<Notification>> GetPendingNotificationsAsync(ApplicationUser user);
+        Task<IEnumerable<InAppNotification>> GetPendingNotificationsAsync(ApplicationUser user);
     }
 
-    public interface IEmailNotificationService : INotificationService
+    public interface IEmailNotificationService : INotificationService<EmailNotification>
     {
         /// <summary>
         /// Gets all email notifications that have been "sent to users" (added to the database for sending)
         /// but have not yet been set as "sent" by the email service.
         /// </summary>
-        /// <returns></returns>
-        Task<IEnumerable<Notification>> GetUnsetEmailNotificationsAsync();
+        /// <returns>A Task containing the <see cref="IEnumerable{T}"/> of <see cref="EmailNotification"/> that
+        /// haven't been sent (includes both never sent and send-failure). Returns an empty list of no records exist</returns>
+        Task<IEnumerable<EmailNotification>> GetUnsentEmailNotificationsAsync();
+    }
+
+    public interface INotificationProcessingService
+    {
+        /// <summary>
+        /// Process all pending notifications that have not yet been sent to users by the email or in-app notification services.
+        /// This method is intended to be called by a background worker service that runs on a schedule to ensure timely delivery of notifications.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> object representing the async task for this method</returns>
+        Task ProcessPendingNotificationsAsync();
     }
 }

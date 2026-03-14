@@ -1,26 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MH.Capstone.Domain.DataAccess;
+﻿using MH.Capstone.Domain.DataAccess;
 using MH.Capstone.Domain.DataAccess.Repositories;
 using MH.Capstone.Domain.DataModels;
 using MH.Capstone.Domain.Services.Abstraction;
 using MH.Capstone.Domain.Tools;
-using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace MH.Capstone.Domain.Services.Notifications
 {
-    public class InAppNotificationService : NotificationServiceBase, IInAppNotificationService
+    public class InAppNotificationService : NotificationServiceBase<InAppNotification>, IInAppNotificationService
     {
-        public InAppNotificationService(IRepository<Notification, ApplicationDbContext> repo,
-            IUserService userService, ILogger<INotificationService> logger) 
+        public InAppNotificationService(IRepository<InAppNotification, ApplicationDbContext> repo,
+            IUserService userService, ILogger<INotificationService<InAppNotification>> logger) 
             : base(repo, userService, logger) { }
 
-        public override async Task SendNotificationAsync(Notification notification)
+        public override async Task SendNotificationAsync(InAppNotification notification)
         {
             if (!notification.TryValidateEntity(out var errors))
             {
@@ -39,7 +32,7 @@ namespace MH.Capstone.Domain.Services.Notifications
             await HandleSqlErrors(_notificationRepo.AddOrUpdateAsync(notification),nameof(notification));
         }
 
-        public async Task<IEnumerable<Notification>> GetPendingNotificationsAsync(Guid userId)
+        public async Task<IEnumerable<InAppNotification>> GetPendingNotificationsAsync(Guid userId)
         {
             var user = await _userService.GetUserByIdAsync(userId);
             if (user == null)
@@ -50,7 +43,7 @@ namespace MH.Capstone.Domain.Services.Notifications
             return await GetPendingNotificationsAsync(user);
         }
 
-        public async Task<IEnumerable<Notification>> GetPendingNotificationsAsync(ApplicationUser user)
+        public async Task<IEnumerable<InAppNotification>> GetPendingNotificationsAsync(ApplicationUser user)
             => await HandleSqlErrors(_notificationRepo.GetAllAsync(n =>
                 n.LinkedUserIdentityId == user.GuidId.ToString() && !n.IsRead));
     }
