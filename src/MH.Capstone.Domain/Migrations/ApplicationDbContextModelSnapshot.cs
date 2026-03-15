@@ -65,6 +65,9 @@ namespace MH.Capstone.Domain.DataAccess.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
+                    b.Property<int>("NotificationDeliveryDefaults")
+                        .HasColumnType("int");
+
                     b.Property<string>("PasswordHash")
                         .HasColumnType("nvarchar(max)");
 
@@ -158,6 +161,9 @@ namespace MH.Capstone.Domain.DataAccess.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -275,6 +281,30 @@ namespace MH.Capstone.Domain.DataAccess.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("PersonalBadges");
+                });
+
+            modelBuilder.Entity("MH.Capstone.Domain.DataModels.UserNotificationSetting", b =>
+                {
+                    b.Property<string>("UserIdentityId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)")
+                        .HasColumnName("UserId");
+
+                    b.Property<int>("NotificationType")
+                        .HasColumnType("int")
+                        .HasColumnName("Type");
+
+                    b.Property<string>("ApplicationUserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("DeliveryMethods")
+                        .HasColumnType("int");
+
+                    b.HasKey("UserIdentityId", "NotificationType");
+
+                    b.HasIndex("ApplicationUserId");
+
+                    b.ToTable("UserNotificationSetting");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -488,6 +518,13 @@ namespace MH.Capstone.Domain.DataAccess.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("MH.Capstone.Domain.DataModels.UserNotificationSetting", b =>
+                {
+                    b.HasOne("MH.Capstone.Domain.DataModels.ApplicationUser", null)
+                        .WithMany("NotificationSettings")
+                        .HasForeignKey("ApplicationUserId");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -559,6 +596,8 @@ namespace MH.Capstone.Domain.DataAccess.Migrations
 
             modelBuilder.Entity("MH.Capstone.Domain.DataModels.ApplicationUser", b =>
                 {
+                    b.Navigation("NotificationSettings");
+
                     b.Navigation("Notifications");
 
                     b.Navigation("Sightings");

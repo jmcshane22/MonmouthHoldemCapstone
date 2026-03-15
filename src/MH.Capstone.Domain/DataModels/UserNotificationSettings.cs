@@ -17,7 +17,6 @@ namespace MH.Capstone.Domain.DataModels
     [Table("UserNotificationSetting")]
     public class UserNotificationSetting
     {
-        // Foreign key to AspNetUsers.Id; Also table PK since this is a 1:1 relationship with ApplicationUser
         [Column("UserId")]
         [MaxLength(450)] // The size of the UserId column should match the size of the primary key in the AspNetUsers table (nvarchar(450))
         [ForeignKey(nameof(User))]
