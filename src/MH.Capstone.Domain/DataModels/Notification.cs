@@ -7,6 +7,8 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using MH.Capstone.Domain.Constants;
+using MH.Capstone.Domain.DataAccess;
+using MH.Capstone.Domain.DataAccess.Repositories;
 using MH.Capstone.Domain.Tools;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -59,8 +61,7 @@ namespace MH.Capstone.Domain.DataModels
         // EF Core requires a parameterless constructor for materialization of entities from the database,
         // so we need to include one even though we don't want it to be used directly in our code.
         public Notification()
-        {
-        }
+        { }
 
         // For general use within the application, we want to require all properties to be set at the time of object creation,
         // so we provide this constructor for that purpose.
@@ -84,20 +85,12 @@ namespace MH.Capstone.Domain.DataModels
         }
 
         /// <summary>
-        /// Creates a notification to a recipient (<see cref="ApplicationUser"/>) with the specified title and message,
-        /// and an optional sentAt timestamp if not sent at the current time and date.
+        /// Enqueues this notification for processing by saving it to the database using the provided repository.
         /// </summary>
-        /// <param name="recipientId">The id (<see cref="Guid"/>) of the recipient (<see cref="ApplicationUser"/>) to send the notification to</param>
-        /// <param name="title">The message of 50 characters or fewer for the notification</param>
-        /// <param name="message">The message of 250 characters or fewer for the notification</param>
-        /// <param name="sentAt">Timestamp of when the Notification was sent. Can be postdated (in the future).
-        /// A null value defaults to the current time</param>
-        /// <returns></returns>
-        public static Notification Create(Guid recipientId, string title, string message, DateTimeOffset? sentAt = null)
-        {
-            sentAt ??= DateTimeOffset.UtcNow;
-            return new Notification(recipientId, title, message, (DateTimeOffset)sentAt);
-        }
+        /// <param name="repo">The repository for this entity</param>
+        /// <returns>A <see cref="Task"/> object representing this operation.</returns>
+        public async Task EnqueueForProcessing(IRepository<Notification, ApplicationDbContext> repo)
+            => await this.SaveModelAsync(repo);
     }
 
     [Table("EmailNotification")]

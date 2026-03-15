@@ -153,7 +153,7 @@ namespace MH.Capstone.Domain.Tests.Unit.Services.Notifications
 
     }
 
-    public struct NotificationValidValuesSource
+    internal struct NotificationValidValuesSource
     {
         public static InAppNotification GetValidInAppNotification(Guid? recipientId = null,
             bool isRead = false, DateTimeOffset? sentAt = null) => 
@@ -170,7 +170,7 @@ namespace MH.Capstone.Domain.Tests.Unit.Services.Notifications
             DeliveredAt = deliveredAt
         };
 
-        private static Notification GetValidNotification(Guid? recipientId = null, 
+        public static Notification GetValidNotification(Guid? recipientId = null, 
             DateTimeOffset? sentAt = null) => new Notification(Guid.NewGuid(), 
                 recipientId ?? Guid.NewGuid(),
                 GetRandomStringOfLength(GetRandomIntInRange(1, 50)),
