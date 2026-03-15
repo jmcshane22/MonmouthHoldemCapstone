@@ -47,8 +47,7 @@ namespace MH.Capstone.Domain.Tests.Unit.Services.Notifications
                 .Verifiable();
 
             // Act
-            var sut = CreateSut();
-            await sut.SendNotificationAsync(notif);
+            await _sut.SendNotificationAsync(notif);
 
             // Assert
             AssertAllMockVerifications();
@@ -68,11 +67,8 @@ namespace MH.Capstone.Domain.Tests.Unit.Services.Notifications
                     new SqlExceptionBuilder().WithNumber(547).Build()))
                 .Verifiable();
 
-            // Act
-            var sut = CreateSut();
-
-            // Assert
-            Assert.ThrowsAsync<ArgumentException>(() => sut.SendNotificationAsync(notif));
+            // Act & Assert
+            Assert.ThrowsAsync<ArgumentException>(() => _sut.SendNotificationAsync(notif));
             AssertAllMockVerifications();
         }
 
@@ -84,17 +80,15 @@ namespace MH.Capstone.Domain.Tests.Unit.Services.Notifications
             // Arrange
             var notif = NotificationValidValuesSource.GetValidInAppNotification();
 
-            if (titleLen == -1)
-                notif.Title = null!;
-            else if (titleLen == 0)
-                notif.Title = string.Empty;
-            else
-                notif.Title = RandomData.GetRandomStringOfLength(titleLen);
-
-            var sut = CreateSut();
+            notif.Title = titleLen switch
+            {
+                -1 => null!,
+                0 => string.Empty,
+                _ => RandomData.GetRandomStringOfLength(titleLen)
+            };
 
             // Act & Assert - should fail validation before repository is called
-            Assert.ThrowsAsync<ArgumentException>(() => sut.SendNotificationAsync(notif));
+            Assert.ThrowsAsync<ArgumentException>(() => _sut.SendNotificationAsync(notif));
             AssertAllMockVerifications();
         }
 
@@ -106,17 +100,15 @@ namespace MH.Capstone.Domain.Tests.Unit.Services.Notifications
             // Arrange
             var notif = NotificationValidValuesSource.GetValidInAppNotification();
 
-            if (messageLen == -1)
-                notif.Message = null!;
-            else if (messageLen == 0)
-                notif.Message = string.Empty;
-            else
-                notif.Message = RandomData.GetRandomStringOfLength(messageLen);
-
-            var sut = CreateSut();
+            notif.Message = messageLen switch
+            {
+                -1 => null!,
+                0 => string.Empty,
+                _ => RandomData.GetRandomStringOfLength(messageLen)
+            };
 
             // Act & Assert - should fail validation before repository is called
-            Assert.ThrowsAsync<ArgumentException>(() => sut.SendNotificationAsync(notif));
+            Assert.ThrowsAsync<ArgumentException>(() => _sut.SendNotificationAsync(notif));
             AssertAllMockVerifications();
         }
 
@@ -149,8 +141,7 @@ namespace MH.Capstone.Domain.Tests.Unit.Services.Notifications
                 .Verifiable(Times.Once);
 
             // Act
-            var sut = CreateSut();
-            var result = (await sut.GetPendingNotificationsAsync(userToAssert.GuidId)).ToList();
+            var result = (await _sut.GetPendingNotificationsAsync(userToAssert.GuidId)).ToList();
 
             // Assert
             Assert.That(result, Is.Not.Null);
@@ -176,8 +167,7 @@ namespace MH.Capstone.Domain.Tests.Unit.Services.Notifications
                 .Verifiable(Times.Once);
 
             // Act
-            var sut = CreateSut();
-            var result = (await sut.GetPendingNotificationsAsync(user)).ToList();
+            var result = (await _sut.GetPendingNotificationsAsync(user)).ToList();
 
             // Assert
             Assert.That(result, Is.Not.Null);
@@ -213,8 +203,7 @@ namespace MH.Capstone.Domain.Tests.Unit.Services.Notifications
                 .Verifiable(Times.Once);
 
             // Act
-            var sut = CreateSut();
-            var result = (await sut.GetPendingNotificationsAsync(userToAssert.GuidId)).ToList();
+            var result = (await _sut.GetPendingNotificationsAsync(userToAssert.GuidId)).ToList();
 
             // Assert
             Assert.That(result, Is.Not.Null);
@@ -251,8 +240,7 @@ namespace MH.Capstone.Domain.Tests.Unit.Services.Notifications
                 .Verifiable(Times.Once);
 
             // Act
-            var sut = CreateSut();
-            var result = (await sut.GetPendingNotificationsAsync(user)).ToList();
+            var result = (await _sut.GetPendingNotificationsAsync(user)).ToList();
 
             // Assert
             Assert.That(result, Is.Not.Null);
@@ -274,11 +262,8 @@ namespace MH.Capstone.Domain.Tests.Unit.Services.Notifications
                 s.UserExistsAsync(userId.ToString()))
                 .ReturnsAsync(false).Verifiable(Times.Once);
 
-            // Act
-            var sut = CreateSut();
-
-            // Assert
-            Assert.ThrowsAsync<ArgumentException>(() => sut.GetPendingNotificationsAsync(userId));
+            // Act & Assert
+            Assert.ThrowsAsync<ArgumentException>(() => _sut.GetPendingNotificationsAsync(userId));
             AssertAllMockVerifications();
         }
 
@@ -301,11 +286,8 @@ namespace MH.Capstone.Domain.Tests.Unit.Services.Notifications
                         (int)SqlErrorNumber.ForeignKeyConstraintViolation).Build())
                 .Verifiable(Times.Once);
 
-            // Act
-            var sut = CreateSut();
-
-            // Assert
-            Assert.ThrowsAsync<ArgumentException>(() => sut.GetPendingNotificationsAsync(user));
+            // Act & Assert
+            Assert.ThrowsAsync<ArgumentException>(() => _sut.GetPendingNotificationsAsync(user));
             AssertAllMockVerifications();
         }
 
@@ -337,8 +319,7 @@ namespace MH.Capstone.Domain.Tests.Unit.Services.Notifications
                 .Verifiable(Times.Once);
 
             // Act
-            var sut = CreateSut();
-            var result = (await sut.GetPendingNotificationsAsync(userToAssert.GuidId)).ToList();
+            var result = (await _sut.GetPendingNotificationsAsync(userToAssert.GuidId)).ToList();
 
             // Assert
             Assert.That(result, Is.Not.Null);
@@ -374,8 +355,7 @@ namespace MH.Capstone.Domain.Tests.Unit.Services.Notifications
                 .Verifiable(Times.Once);
 
             // Act
-            var sut = CreateSut();
-            var result = (await sut.GetPendingNotificationsAsync(user)).ToList();
+            var result = (await _sut.GetPendingNotificationsAsync(user)).ToList();
 
             // Assert
             Assert.That(result, Is.Not.Null);

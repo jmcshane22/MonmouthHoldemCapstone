@@ -23,6 +23,7 @@ namespace MH.Capstone.Domain.Tests.Unit.Services.Notifications
 
         protected Mock<IRepository<TNotifType, ApplicationDbContext>> _mockNotificationRepository;
         protected Mock<IUserService> _mockUserService;
+        protected TService _sut;
 
         [SetUp]
         public void SetUp()
@@ -30,6 +31,7 @@ namespace MH.Capstone.Domain.Tests.Unit.Services.Notifications
             _mockNotificationRepository =
                 new Mock<IRepository<TNotifType, ApplicationDbContext>>();
             _mockUserService = new Mock<IUserService>();
+            _sut = CreateSut();
         }
 
         protected abstract TService CreateSut();
@@ -73,8 +75,7 @@ namespace MH.Capstone.Domain.Tests.Unit.Services.Notifications
                 .Verifiable(Times.Once);
 
             // Act
-            var sut = CreateSut();
-            var result = (await sut.GetAllNotificationsAsync(userToAssert.GuidId)).ToList();
+            var result = (await _sut.GetAllNotificationsAsync(userToAssert.GuidId)).ToList();
 
             // Assert
             Assert.That(result, Is.Not.Null);
@@ -101,8 +102,7 @@ namespace MH.Capstone.Domain.Tests.Unit.Services.Notifications
                 .Verifiable(Times.Once);
 
             // Act
-            var sut = CreateSut();
-            var result = (await sut.GetAllNotificationsAsync(user)).ToList();
+            var result = (await _sut.GetAllNotificationsAsync(user)).ToList();
 
             // Assert
             Assert.That(result, Is.Not.Null);
@@ -120,11 +120,8 @@ namespace MH.Capstone.Domain.Tests.Unit.Services.Notifications
                     s.UserExistsAsync(userId.ToString()))
                 .ReturnsAsync(false).Verifiable(Times.Once);
 
-            // Act
-            var sut = CreateSut();
-
-            // Assert
-            Assert.ThrowsAsync<ArgumentException>(() => sut.GetAllNotificationsAsync(userId));
+            // Act & Assert
+            Assert.ThrowsAsync<ArgumentException>(() => _sut.GetAllNotificationsAsync(userId));
             AssertAllMockVerifications();
         }
 
@@ -147,11 +144,8 @@ namespace MH.Capstone.Domain.Tests.Unit.Services.Notifications
                     (int)SqlErrorNumber.ForeignKeyConstraintViolation).Build())
                 .Verifiable(Times.Once);
 
-            // Act
-            var sut = CreateSut();
-
-            // Assert
-            Assert.ThrowsAsync<ArgumentException>(() => sut.GetAllNotificationsAsync(user));
+            // Act & Assert
+            Assert.ThrowsAsync<ArgumentException>(() => _sut.GetAllNotificationsAsync(user));
             AssertAllMockVerifications();
         }
 
@@ -161,16 +155,26 @@ namespace MH.Capstone.Domain.Tests.Unit.Services.Notifications
 
     public struct NotificationValidValuesSource
     {
-        public static Notification GetValidNotification(Guid? recipientId = null) =>
-            new Notification(Guid.NewGuid(), recipientId ?? Guid.NewGuid(),
-                GetRandomStringOfLength(GetRandomIntInRange(1, 50)),
-                GetRandomStringOfLength(GetRandomIntInRange(1, 250)),
-                DateTimeOffset.UtcNow);
-
         public static InAppNotification GetValidInAppNotification(Guid? recipientId = null,
-            bool isRead = false) => new InAppNotification(GetValidNotification())
+            bool isRead = false, DateTimeOffset? sentAt = null) => 
+            new InAppNotification(GetValidNotification(recipientId))
         {
             IsRead = isRead
         };
+
+        public static EmailNotification GetValidEmailNotification(Guid? recipientId = null,
+            bool isRead = false, DateTimeOffset? sentAt = null, 
+            DateTimeOffset? deliveredAt = null) => 
+            new EmailNotification(GetValidNotification(recipientId))
+        {
+            DeliveredAt = deliveredAt
+        };
+
+        private static Notification GetValidNotification(Guid? recipientId = null, 
+            DateTimeOffset? sentAt = null) => new Notification(Guid.NewGuid(), 
+                recipientId ?? Guid.NewGuid(),
+                GetRandomStringOfLength(GetRandomIntInRange(1, 50)),
+                GetRandomStringOfLength(GetRandomIntInRange(1, 250)),
+                sentAt ?? DateTimeOffset.UtcNow);
     }
 }
