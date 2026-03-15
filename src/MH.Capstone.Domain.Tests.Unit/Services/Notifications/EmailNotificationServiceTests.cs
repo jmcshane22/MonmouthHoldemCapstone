@@ -9,6 +9,7 @@ using MH.Capstone.Domain.Services.Abstraction;
 using MH.Capstone.Domain.Services.Notifications;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
+using Neleus.LambdaCompare;
 
 namespace MH.Capstone.Domain.Tests.Unit.Services.Notifications
 {
@@ -30,10 +31,11 @@ namespace MH.Capstone.Domain.Tests.Unit.Services.Notifications
         
         #region GetUnsentEmailNotificationsAsyncTests
 
-        private static Expression<Func<EmailNotification, bool>> GetUnsentEmailNotificationsAsyncExpression =>
+        private static Expression<Func<EmailNotification, bool>> UnsentEmailNotificationsExpression =>
             n => n.DeliveredAt == null && n.SentAt.ToUniversalTime() < DateTimeOffset.UtcNow &&
                  n.FailureCount < 3 && (n.LastFailure == null 
-                                        || n.LastFailure.Value.AddMinutes(5 * n.FailureCount) < DateTimeOffset.UtcNow);
+                                        || n.LastFailure.Value.ToUniversalTime()
+                                            .AddMinutes(n.FailureCount * 5) < DateTimeOffset.UtcNow);
 
         [Test]
         public async Task
@@ -46,9 +48,13 @@ namespace MH.Capstone.Domain.Tests.Unit.Services.Notifications
                 NotificationValidValuesSource.GetValidEmailNotification(),
                 NotificationValidValuesSource.GetValidEmailNotification()
             };
+            var testExpression = UnsentEmailNotificationsExpression;
 
             _mockNotificationRepository.Setup(r => 
-                r.GetAllAsync(GetUnsentEmailNotificationsAsyncExpression))
+                r.GetAllAsync(
+                    It.Is<Expression<Func<EmailNotification, bool>>>(
+                        e => Lambda.ExpressionsEqual(e, testExpression))
+                    ))
                 .ReturnsAsync(expected.AsQueryable()).Verifiable(Times.Once);
 
             // Act
@@ -64,9 +70,13 @@ namespace MH.Capstone.Domain.Tests.Unit.Services.Notifications
         {
             // Arrange
             var expected = Array.Empty<EmailNotification>();
+            var testExpression = UnsentEmailNotificationsExpression;
 
-            _mockNotificationRepository.Setup(r => 
-                r.GetAllAsync(GetUnsentEmailNotificationsAsyncExpression))
+            _mockNotificationRepository.Setup(r =>
+                    r.GetAllAsync(
+                        It.Is<Expression<Func<EmailNotification, bool>>>(
+                            e => Lambda.ExpressionsEqual(e, testExpression))
+                    ))
                 .ReturnsAsync(expected.AsQueryable()).Verifiable(Times.Once);
 
 
