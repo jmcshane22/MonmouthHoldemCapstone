@@ -75,13 +75,20 @@ namespace MH.Capstone.Domain.Services.Abstraction
         Task<IEnumerable<EmailNotification>> GetUnsentEmailNotificationsAsync();
     }
 
-    public interface INotificationProcessingService
+    public interface INotificationProcessor
     {
         /// <summary>
-        /// Process all pending notifications that have not yet been sent to users by the email or in-app notification services.
+        /// Process all pending notifications that have not yet been sent to users by any delivery method.
         /// This method is intended to be called by a background worker service that runs on a schedule to ensure timely delivery of notifications.
         /// </summary>
         /// <returns>A <see cref="Task"/> object representing the async task for this method</returns>
         Task ProcessPendingNotificationsAsync();
+
+        /// <summary>
+        /// Queues the specified notification for asynchronous processing.
+        /// </summary>
+        /// <param name="notification">The notification to be processed. Cannot be null.</param>
+        /// <returns>A task that represents the asynchronous enqueue operation.</returns>
+        Task EnqueueNotificationForProcessingAsync(Notification notification);
     }
 }

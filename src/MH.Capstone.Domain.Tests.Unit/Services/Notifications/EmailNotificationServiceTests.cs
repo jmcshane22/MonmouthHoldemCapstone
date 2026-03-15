@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -13,9 +14,12 @@ using Neleus.LambdaCompare;
 
 namespace MH.Capstone.Domain.Tests.Unit.Services.Notifications
 {
+    [TestFixture]
+    [Parallelizable]
+    [ExcludeFromCodeCoverage]
     public class EmailNotificationServiceTests : NotificationServiceBaseTests<EmailNotificationService, EmailNotification>
     {
-        #region MyRegion
+        #region TestOverhead
 
         protected override EmailNotificationService CreateSut() =>
             new EmailNotificationService(_mockNotificationRepository.Object, 

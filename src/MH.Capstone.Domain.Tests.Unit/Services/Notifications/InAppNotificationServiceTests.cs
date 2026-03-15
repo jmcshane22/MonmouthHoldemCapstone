@@ -12,6 +12,7 @@ using System.Linq.Expressions;
 namespace MH.Capstone.Domain.Tests.Unit.Services.Notifications
 {
     [TestFixture]
+    [Parallelizable]
     [ExcludeFromCodeCoverage]
     public class InAppNotificationServiceTests : NotificationServiceBaseTests<InAppNotificationService, InAppNotification>
     {
