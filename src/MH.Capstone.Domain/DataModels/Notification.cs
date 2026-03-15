@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using MH.Capstone.Domain.Constants;
 using MH.Capstone.Domain.Tools;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -47,6 +48,10 @@ namespace MH.Capstone.Domain.DataModels
 
         [Required] 
         public DateTimeOffset SentAt { get; set; }
+
+        [Required]
+        [EnumDataType(typeof(NotificationType))]
+        public NotificationType Type { get; set; } = NotificationType.Undefined;
 
         [JsonIgnore]
         public virtual ApplicationUser Recipient { get; set; } = null!;
