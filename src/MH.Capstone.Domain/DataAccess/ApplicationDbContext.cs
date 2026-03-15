@@ -14,12 +14,20 @@ namespace MH.Capstone.Domain.DataAccess
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
         // Identity tables are automatically included.
-        // Add additional user-related DbSets here if needed.
+        // Add additional DbSets below
 
         public DbSet<Sighting> Sightings { get; set; } = null!;
+
         public DbSet<Badge> Badges { get; set; } = null!;
+
         public DbSet<UserBadge> UserBadges { get; set; } = null!;
+
         public DbSet<Notification> Notifications { get; set; } = null!;
+
+        public DbSet<InAppNotification> InAppNotifications { get; set; } = null!;
+
+        public DbSet<EmailNotification> EmailNotifications { get; set; } = null!;
+
         public DbSet<Report> Reports { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

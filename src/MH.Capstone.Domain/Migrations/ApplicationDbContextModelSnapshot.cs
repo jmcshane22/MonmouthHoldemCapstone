@@ -140,9 +140,6 @@ namespace MH.Capstone.Domain.DataAccess.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("bit");
-
                     b.Property<string>("LinkedUserIdentityId")
                         .IsRequired()
                         .HasMaxLength(450)
@@ -167,6 +164,8 @@ namespace MH.Capstone.Domain.DataAccess.Migrations
                     b.HasIndex("LinkedUserIdentityId");
 
                     b.ToTable("Notification");
+
+                    b.UseTptMappingStrategy();
                 });
 
             modelBuilder.Entity("MH.Capstone.Domain.DataModels.Report", b =>
@@ -411,6 +410,32 @@ namespace MH.Capstone.Domain.DataAccess.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("MH.Capstone.Domain.DataModels.EmailNotification", b =>
+                {
+                    b.HasBaseType("MH.Capstone.Domain.DataModels.Notification");
+
+                    b.Property<DateTimeOffset?>("DeliveredAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("FailureCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("LastFailure")
+                        .HasColumnType("datetimeoffset");
+
+                    b.ToTable("EmailNotification");
+                });
+
+            modelBuilder.Entity("MH.Capstone.Domain.DataModels.InAppNotification", b =>
+                {
+                    b.HasBaseType("MH.Capstone.Domain.DataModels.Notification");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.ToTable("InAppNotification");
+                });
+
             modelBuilder.Entity("MH.Capstone.Domain.DataModels.Notification", b =>
                 {
                     b.HasOne("MH.Capstone.Domain.DataModels.ApplicationUser", "Recipient")
@@ -510,6 +535,24 @@ namespace MH.Capstone.Domain.DataAccess.Migrations
                     b.HasOne("MH.Capstone.Domain.DataModels.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("MH.Capstone.Domain.DataModels.EmailNotification", b =>
+                {
+                    b.HasOne("MH.Capstone.Domain.DataModels.Notification", null)
+                        .WithOne()
+                        .HasForeignKey("MH.Capstone.Domain.DataModels.EmailNotification", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("MH.Capstone.Domain.DataModels.InAppNotification", b =>
+                {
+                    b.HasOne("MH.Capstone.Domain.DataModels.Notification", null)
+                        .WithOne()
+                        .HasForeignKey("MH.Capstone.Domain.DataModels.InAppNotification", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
