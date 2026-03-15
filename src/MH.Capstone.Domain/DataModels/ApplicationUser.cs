@@ -1,6 +1,7 @@
+using MH.Capstone.Domain.Constants;
+using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.AspNetCore.Identity;
 
 namespace MH.Capstone.Domain.DataModels
 {
@@ -45,5 +46,13 @@ namespace MH.Capstone.Domain.DataModels
         public string? Bio { get; set; } = null; // Default to null for placeholder value
         
         public virtual List<Notification> Notifications { get; set; } = new List<Notification>();
+
+        [Required]
+        [EnumDataType(typeof(NotificationDeliveryMethods))]
+        public NotificationDeliveryMethods NotificationDeliveryDefaults { get; set; } =
+            NotificationDeliveryMethods.InApp;
+
+        public virtual List<UserNotificationSetting> NotificationSettings { get; set; } = 
+            new List<UserNotificationSetting>();
     }
 }
