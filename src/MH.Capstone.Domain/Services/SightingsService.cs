@@ -59,9 +59,18 @@ namespace MH.Capstone.Domain.Services
                 // Step 3: Award points to the user
                 var users = await _userRepo.GetAllAsync();
                 var user = users.FirstOrDefault(u => u.Id == entity.UserIdentityId);
-                
+
                 if (user != null)
                 {
+                    // Check if the user has an active loginStreak.
+                    // If so, apply a 1.5 points multiplier to their original Sighting.
+                    if (user.IsStreakActive)
+                    {
+                        var userStreakApplied = pointsEarned * 1.5;
+                        pointsEarned = (int)userStreakApplied;
+                    }
+
+                    // Adds and saves the points to the user
                     user.Points += pointsEarned;
                     await _userRepo.AddOrUpdateAsync(user);
 
@@ -85,13 +94,15 @@ namespace MH.Capstone.Domain.Services
                     // Generate the notification with the correct AM/PM and 12-hour format
                     string timeDisplay = deviceTime.ToString("MM/dd/yyyy h:mm tt");
 
+                    // TODO - Fix Notificaiton Call(s)
                     //await _inAppNotificationService.SendNotificationAsync(Notification.Create(user.GuidId,
                     //    "New Sighting Uploaded & Created!",
                     //    $"Congratulations! You uploaded a new sighting at {timeDisplay} and " +
                     //    $"earned {pointsEarned} points!"
                     //    ));
                     _logger.LogInformation("Awarded {Points} points to user {UserId} for sighting", pointsEarned, entity.UserId);
-                    // AM and PM display mismatch?
+                    
+                    // AM and PM display mismatch catch logs
                     _logger.LogInformation("Raw DB Timestamp: {Raw}", entity.Timestamp);
                     _logger.LogInformation("Localized display: {Local}", timeDisplay);
                 }
@@ -106,6 +117,21 @@ namespace MH.Capstone.Domain.Services
                     $"Sighting entity validation failed. UserId {entity.UserId} does not exist.", nameof(entity.UserId),
                     ex);
             }
+        }
+
+        public async Task<IEnumerable<Sighting>> GetSightingsInBoundsAsync(decimal minLat, decimal maxLat, decimal minLng, decimal maxLng)
+        {
+            var sevenDaysAgo = DateTimeOffset.UtcNow.AddDays(-7);
+
+            var sightings = await _sightingsRepo.GetAllAsync(s => 
+                            s.Latitude >= minLat &&
+                            s.Latitude <= maxLat &&
+                            s.Longitude >= minLng &&
+                            s.Longitude <= maxLng &&
+                            s.Timestamp >= sevenDaysAgo);
+                
+
+            return sightings.ToList();
         }
 
         public bool ValidateImage(IFormFile? imageBuffer)
@@ -132,5 +158,19 @@ namespace MH.Capstone.Domain.Services
             // If we made it here, the image is valid
             return true;
         }
+
+        #region CSP-145: Sighting Gallery Feature
+
+        public async Task<IEnumerable<Sighting>> GetUserSightingsAsync(Guid userId)
+        {
+            _logger.LogInformation("Fetching sightings for user {UserId}", userId);
+            // Use repository's predicate overload to filter, then order and fetch efficiently
+            var queryable = await _sightingsRepo.GetAllAsync(s => s.UserIdentityId == userId.ToString());
+            var sightings = queryable.OrderByDescending(s => s.Timestamp).ToList();
+            _logger.LogInformation("Retrieved {Count} sightings for user {UserId}", sightings.Count, userId);
+            return sightings;
+        }
+
+        #endregion
     }
 }

@@ -68,8 +68,49 @@ namespace MH.Capstone.WebApp.Controllers
 
             // Since invalid Sightings were already checked and the sighting has already been uploaded,
             // give the user the First Sighting Badge
-            await _badgeService.AddBadge(user, BadgeId.FirstSightingBadgeGUID);
+
+            // Need to fetch the global timezone cookie for notification display purposes
+            // Default timezone is PST
+                     string userTimeZoneId = Request.Cookies["UserTimeZone"] ?? "America/Los_Angeles";
+
+            await _badgeService.AddBadge(user, BadgeId.FirstSightingBadgeGUID, userTimeZoneId);
             return RedirectToAction("Index", "Dashboard");
         }
+
+        #region CSP-145: Sighting Gallery Feature
+
+        
+        // Displays a gallery view of all sightings uploaded by the authenticated user.
+        // Shows an empty state if the user has no sightings.
+       
+        [HttpGet]
+        [Route("Gallery")]
+        public async Task<IActionResult> Gallery()
+        {
+            // Get the currently authenticated user
+            var user = await _userManager.GetUserAsync(User);
+
+            // If user is not authenticated or not found, return Unauthorized
+            if (user == null)
+            {
+                _logger.LogError("Authenticated user could not be found in the database during Gallery access.");
+                return StatusCode((int)HttpStatusCode.InternalServerError);
+            }
+
+            // Fetch all sightings for this user from the service layer
+            // The service handles filtering by userId and ordering by timestamp
+            var sightings = await _sightingsService.GetUserSightingsAsync(user.GuidId);
+
+            // Convert the sightings to a ViewModel for display
+            // This handles byte[] to base64 conversion for images
+            var viewModel = new SightingGalleryViewModel(sightings);
+
+            _logger.LogInformation("User {UserId} accessed gallery with {Count} sightings", 
+                user.Id, viewModel.SightingCount);
+
+            return View(viewModel);
+        }
+
+        #endregion
     }
 }
