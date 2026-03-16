@@ -60,7 +60,7 @@ namespace MH.Capstone.Domain.Migrations
                 type: "nvarchar(21)",
                 maxLength: 21,
                 nullable: false,
-                defaultValue: "");
+                defaultValue: "InAppNotification");
 
             migrationBuilder.AddColumn<int>(
                 name: "Type",
@@ -106,10 +106,6 @@ namespace MH.Capstone.Domain.Migrations
         {
             migrationBuilder.DropTable(
                 name: "UserNotificationSetting");
-
-            migrationBuilder.DropIndex(
-                name: "IX_Report_ReportingUserId_ReportedPageUrl",
-                table: "Report");
 
             migrationBuilder.DropColumn(
                 name: "DeliveredAt",
