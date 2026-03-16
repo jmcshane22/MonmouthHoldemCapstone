@@ -17,12 +17,12 @@ namespace MH.Capstone.Domain.Services
         private readonly IRepository<Badge, ApplicationDbContext> _badgeRepo;
         private readonly IRepository<UserBadge, ApplicationDbContext> _userBadgeRepo;
         private readonly IRepository<ApplicationUser, ApplicationDbContext> _userRepo;
-        private readonly INotificationService _notificationService;
+        private readonly IInAppNotificationService _notificationService;
 
         public BadgeService(IRepository<Badge, ApplicationDbContext> badgeRepo,
         IRepository<UserBadge, ApplicationDbContext> userBadgeRepo,
         IRepository<ApplicationUser, ApplicationDbContext> userRepo,
-        INotificationService notificationService)
+        IInAppNotificationService notificationService)
         {
             // Switch Dependency Injection of DB context fully over to Repository structure
             _badgeRepo = badgeRepo;
@@ -99,11 +99,12 @@ namespace MH.Capstone.Domain.Services
                 // Generate the notification with the correct AM/PM and 12-hour format
                 string timeDisplay = deviceTime.ToString("MM/dd/yyyy h:mm tt");
 
-                await _notificationService.SendNotificationAsync(Notification.Create(user.GuidId,
-                    $"Earned the {badgeTemplate.Title}",
-                    $"Congratulations! You earned the {badgeTemplate.Title} at {timeDisplay} and " +
-                    $"won {badgePointTotal} points!"
-                    ));
+                // TODO - Fix notification call
+                //await _notificationService.SendNotificationAsync(Notification.Create(user.GuidId,
+                //    $"Earned the {badgeTemplate.Title}",
+                //    $"Congratulations! You earned the {badgeTemplate.Title} at {timeDisplay} and " +
+                //    $"won {badgePointTotal} points!"
+                //    ));
             }
 
             // If the loop completes without badgeID found,

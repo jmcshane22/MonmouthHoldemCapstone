@@ -1,18 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 using MH.Capstone.Domain.Constants;
 using MH.Capstone.Domain.DataAccess;
 using MH.Capstone.Domain.DataAccess.Repositories;
-using MH.Capstone.Domain.Tools;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace MH.Capstone.Domain.DataModels
@@ -91,9 +82,16 @@ namespace MH.Capstone.Domain.DataModels
         /// <returns>A <see cref="Task"/> object representing this operation.</returns>
         public async Task EnqueueForProcessing(IRepository<Notification, ApplicationDbContext> repo)
             => await this.SaveModelAsync(repo);
+
+        internal static void OnModelCreating(EntityTypeBuilder<Notification> builder)
+        {
+            builder.HasDiscriminator<string>("PocoType")
+                .HasValue<Notification>("Notification")
+                .HasValue<EmailNotification>("EmailNotification")
+                .HasValue<InAppNotification>("InAppNotification");
+        }
     }
 
-    [Table("EmailNotification")]
     public class EmailNotification : Notification
     {
         public DateTimeOffset? DeliveredAt { get; set; } = null;
@@ -116,7 +114,6 @@ namespace MH.Capstone.Domain.DataModels
         { }
     }
 
-    [Table("InAppNotification")]
     public class InAppNotification : Notification
     {
         public bool IsRead { get; set; } = false;

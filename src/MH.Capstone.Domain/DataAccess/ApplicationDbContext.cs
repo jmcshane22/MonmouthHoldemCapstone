@@ -40,6 +40,9 @@ namespace MH.Capstone.Domain.DataAccess
                 .HasIndex(r => new { r.ReportingUserIdentityId, r.ReportedPageUrl })
                 .IsUnique()
                 .HasFilter("[IsResolved] = 0");
+
+            // Configure the Notification entity and its derived types using the static method defined on the Notification class
+            Notification.OnModelCreating(modelBuilder.Entity<Notification>());
         }
     }
 }

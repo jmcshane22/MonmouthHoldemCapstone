@@ -19,7 +19,8 @@ public class SightingsMapSteps
     private Mock<IRepository<Sighting, ApplicationDbContext>> _sightingsRepoMock = null!;
     private Mock<IRepository<ApplicationUser, ApplicationDbContext>> _userRepoMock = null!;
     private Mock<IScoringService> _scoringServiceMock = null!;
-    private Mock<INotificationService> _notificationServiceMock = null!;
+    private Mock<IInAppNotificationService> _notificationServiceMock = null!;
+    private Mock<IBadgeService> _badgeServiceMock = null!;
     private ISightingsService _sightingsService = null!;
     private bool _isLoggedIn;
 
@@ -32,11 +33,13 @@ public class SightingsMapSteps
         _sightingsRepoMock = new Mock<IRepository<Sighting, ApplicationDbContext>>();
         _userRepoMock = new Mock<IRepository<ApplicationUser, ApplicationDbContext>>();
         _scoringServiceMock = new Mock<IScoringService>();
-        _notificationServiceMock = new Mock<INotificationService>();
+        _notificationServiceMock = new Mock<IInAppNotificationService>();
+        _badgeServiceMock = new Mock<IBadgeService>();
 
         // Initialize Service (SUT)
         _sightingsService = new SightingsService(
             NullLogger<SightingsService>.Instance,
+            _badgeServiceMock.Object,
             _scoringServiceMock.Object,
             _notificationServiceMock.Object,
             _sightingsRepoMock.Object,

@@ -160,6 +160,11 @@ namespace MH.Capstone.Domain.DataAccess.Migrations
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
 
+                    b.Property<string>("PocoType")
+                        .IsRequired()
+                        .HasMaxLength(21)
+                        .HasColumnType("nvarchar(21)");
+
                     b.Property<DateTimeOffset>("SentAt")
                         .HasColumnType("datetimeoffset");
 
@@ -177,7 +182,9 @@ namespace MH.Capstone.Domain.DataAccess.Migrations
 
                     b.ToTable("Notification");
 
-                    b.UseTptMappingStrategy();
+                    b.HasDiscriminator<string>("PocoType").HasValue("Notification");
+
+                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("MH.Capstone.Domain.DataModels.Report", b =>
@@ -459,7 +466,9 @@ namespace MH.Capstone.Domain.DataAccess.Migrations
                     b.Property<DateTimeOffset?>("LastFailure")
                         .HasColumnType("datetimeoffset");
 
-                    b.ToTable("EmailNotification");
+                    b.ToTable("Notification");
+
+                    b.HasDiscriminator().HasValue("EmailNotification");
                 });
 
             modelBuilder.Entity("MH.Capstone.Domain.DataModels.InAppNotification", b =>
@@ -469,7 +478,9 @@ namespace MH.Capstone.Domain.DataAccess.Migrations
                     b.Property<bool>("IsRead")
                         .HasColumnType("bit");
 
-                    b.ToTable("InAppNotification");
+                    b.ToTable("Notification");
+
+                    b.HasDiscriminator().HasValue("InAppNotification");
                 });
 
             modelBuilder.Entity("MH.Capstone.Domain.DataModels.Notification", b =>
@@ -578,24 +589,6 @@ namespace MH.Capstone.Domain.DataAccess.Migrations
                     b.HasOne("MH.Capstone.Domain.DataModels.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("MH.Capstone.Domain.DataModels.EmailNotification", b =>
-                {
-                    b.HasOne("MH.Capstone.Domain.DataModels.Notification", null)
-                        .WithOne()
-                        .HasForeignKey("MH.Capstone.Domain.DataModels.EmailNotification", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("MH.Capstone.Domain.DataModels.InAppNotification", b =>
-                {
-                    b.HasOne("MH.Capstone.Domain.DataModels.Notification", null)
-                        .WithOne()
-                        .HasForeignKey("MH.Capstone.Domain.DataModels.InAppNotification", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

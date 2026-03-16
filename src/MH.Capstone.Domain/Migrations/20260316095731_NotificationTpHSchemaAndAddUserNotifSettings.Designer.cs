@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MH.Capstone.Domain.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260314095014_NotificationsSchemaUpdate")]
-    partial class NotificationsSchemaUpdate
+    [Migration("20260316095731_NotificationTpHSchemaAndAddUserNotifSettings")]
+    partial class NotificationTpHSchemaAndAddUserNotifSettings
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -67,6 +67,9 @@ namespace MH.Capstone.Domain.Migrations
                     b.Property<string>("NormalizedUserName")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
+
+                    b.Property<int>("NotificationDeliveryDefaults")
+                        .HasColumnType("int");
 
                     b.Property<string>("PasswordHash")
                         .HasColumnType("nvarchar(max)");
@@ -154,6 +157,11 @@ namespace MH.Capstone.Domain.Migrations
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
 
+                    b.Property<string>("PocoType")
+                        .IsRequired()
+                        .HasMaxLength(21)
+                        .HasColumnType("nvarchar(21)");
+
                     b.Property<DateTimeOffset>("SentAt")
                         .HasColumnType("datetimeoffset");
 
@@ -162,13 +170,18 @@ namespace MH.Capstone.Domain.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("LinkedUserIdentityId");
 
                     b.ToTable("Notification");
 
-                    b.UseTptMappingStrategy();
+                    b.HasDiscriminator<string>("PocoType").HasValue("Notification");
+
+                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("MH.Capstone.Domain.DataModels.Report", b =>
@@ -278,6 +291,30 @@ namespace MH.Capstone.Domain.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("PersonalBadges");
+                });
+
+            modelBuilder.Entity("MH.Capstone.Domain.DataModels.UserNotificationSetting", b =>
+                {
+                    b.Property<string>("UserIdentityId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)")
+                        .HasColumnName("UserId");
+
+                    b.Property<int>("NotificationType")
+                        .HasColumnType("int")
+                        .HasColumnName("Type");
+
+                    b.Property<string>("ApplicationUserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("DeliveryMethods")
+                        .HasColumnType("int");
+
+                    b.HasKey("UserIdentityId", "NotificationType");
+
+                    b.HasIndex("ApplicationUserId");
+
+                    b.ToTable("UserNotificationSetting");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -426,7 +463,9 @@ namespace MH.Capstone.Domain.Migrations
                     b.Property<DateTimeOffset?>("LastFailure")
                         .HasColumnType("datetimeoffset");
 
-                    b.ToTable("EmailNotification");
+                    b.ToTable("Notification");
+
+                    b.HasDiscriminator().HasValue("EmailNotification");
                 });
 
             modelBuilder.Entity("MH.Capstone.Domain.DataModels.InAppNotification", b =>
@@ -436,7 +475,9 @@ namespace MH.Capstone.Domain.Migrations
                     b.Property<bool>("IsRead")
                         .HasColumnType("bit");
 
-                    b.ToTable("InAppNotification");
+                    b.ToTable("Notification");
+
+                    b.HasDiscriminator().HasValue("InAppNotification");
                 });
 
             modelBuilder.Entity("MH.Capstone.Domain.DataModels.Notification", b =>
@@ -491,6 +532,13 @@ namespace MH.Capstone.Domain.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("MH.Capstone.Domain.DataModels.UserNotificationSetting", b =>
+                {
+                    b.HasOne("MH.Capstone.Domain.DataModels.ApplicationUser", null)
+                        .WithMany("NotificationSettings")
+                        .HasForeignKey("ApplicationUserId");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -542,26 +590,10 @@ namespace MH.Capstone.Domain.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("MH.Capstone.Domain.DataModels.EmailNotification", b =>
-                {
-                    b.HasOne("MH.Capstone.Domain.DataModels.Notification", null)
-                        .WithOne()
-                        .HasForeignKey("MH.Capstone.Domain.DataModels.EmailNotification", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("MH.Capstone.Domain.DataModels.InAppNotification", b =>
-                {
-                    b.HasOne("MH.Capstone.Domain.DataModels.Notification", null)
-                        .WithOne()
-                        .HasForeignKey("MH.Capstone.Domain.DataModels.InAppNotification", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("MH.Capstone.Domain.DataModels.ApplicationUser", b =>
                 {
+                    b.Navigation("NotificationSettings");
+
                     b.Navigation("Notifications");
 
                     b.Navigation("Sightings");

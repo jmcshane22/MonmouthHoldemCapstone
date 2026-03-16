@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MH.Capstone.Domain.Constants;
-using MH.Capstone.Domain.DataModels;
+﻿using MH.Capstone.Domain.DataModels;
 
 namespace MH.Capstone.Domain.Services.Abstraction
 {
@@ -92,15 +86,5 @@ namespace MH.Capstone.Domain.Services.Abstraction
         /// <returns>A task that represents the asynchronous operation. The task completes when all unsent notifications have
         /// been processed.</returns>
         Task ProcessUnsentNotificationsAsync();
-    }
-
-    public interface INotificationServiceFactory
-    {
-        /// <summary>
-        /// Gets the appropriate <see cref="INotificationService{T}"/> implementation based on the provided <see cref="Notification"/>.
-        /// </summary>
-        /// <param name="notification">The notification to get the service for.</param>
-        /// <returns>The appropriate <see cref="INotificationService{T}"/> implementation for the provided notification derived type.</returns>
-        INotificationService<Notification> GetNotificationService(Notification notification);
     }
 }
