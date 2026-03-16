@@ -11,7 +11,8 @@ using Microsoft.Extensions.Logging;
 
 namespace MH.Capstone.Domain.Services.Notifications
 {
-    public class EmailNotificationService : NotificationServiceBase<EmailNotification>, IEmailNotificationService
+    public class EmailNotificationService : NotificationServiceBase<EmailNotification>, 
+        IEmailNotificationService
     {
         private const int _MAX_FAILURE_COUNT = 3;
         private const int _RETRY_DELAY_MINUTES = 5;

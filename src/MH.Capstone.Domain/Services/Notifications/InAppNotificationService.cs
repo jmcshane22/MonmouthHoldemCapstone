@@ -7,7 +7,8 @@ using Microsoft.Extensions.Logging;
 
 namespace MH.Capstone.Domain.Services.Notifications
 {
-    public class InAppNotificationService : NotificationServiceBase<InAppNotification>, IInAppNotificationService
+    public class InAppNotificationService : NotificationServiceBase<InAppNotification>, 
+        IInAppNotificationService
     {
         public InAppNotificationService(IRepository<InAppNotification, ApplicationDbContext> repo,
             IUserService userService, ILogger<INotificationService<InAppNotification>> logger) 

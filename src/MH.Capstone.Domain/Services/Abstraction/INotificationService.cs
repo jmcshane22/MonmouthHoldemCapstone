@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MH.Capstone.Domain.Constants;
 using MH.Capstone.Domain.DataModels;
 
 namespace MH.Capstone.Domain.Services.Abstraction
@@ -68,20 +69,38 @@ namespace MH.Capstone.Domain.Services.Abstraction
     {
         /// <summary>
         /// Gets all email notifications that have been "sent to users" (added to the database for sending)
-        /// but have not yet been set as "sent" by the email service.
+        /// but have not yet been set as "sent" by this email service.
         /// </summary>
         /// <returns>A Task containing the <see cref="IEnumerable{T}"/> of <see cref="EmailNotification"/> that
-        /// haven't been sent (includes both never sent and send-failure). Returns an empty list of no records exist</returns>
+        /// haven't been sent (includes both never sent and send-failure). Returns an empty list if no records exist</returns>
         Task<IEnumerable<EmailNotification>> GetUnsentEmailNotificationsAsync();
     }
 
+    /// <summary>
+    /// This interface is intended to be implemented by a background service that continuously checks for unsent notifications.
+    /// This should not be called directly by controllers or other services, but instead should be implemented by a background service
+    /// that runs on a timer or similar mechanism to continuously check for unsent notifications and process them as needed.
+    /// </summary>
     public interface INotificationProcessor
     {
         /// <summary>
-        /// Process all pending notifications that have not yet been sent to users by any delivery method.
-        /// This method is intended to be called by a background worker service that runs on a schedule to ensure timely delivery of notifications.
+        /// Processes all unsent notifications asynchronously using calls to the relevant <see cref="INotificationService{T}"/> (s).
+        /// This method also handles failure/retry logic for failed notifications when applicable and updating the relevant notification
+        /// records in the database accordingly (e.g., incrementing failure count, setting last failure time, adding derived notification
+        /// (InApp, Email, etc.) to the correct table, etc.).
         /// </summary>
-        /// <returns>A <see cref="Task"/> object representing the async task for this method</returns>
+        /// <returns>A task that represents the asynchronous operation. The task completes when all unsent notifications have
+        /// been processed.</returns>
         Task ProcessUnsentNotificationsAsync();
+    }
+
+    public interface INotificationServiceFactory
+    {
+        /// <summary>
+        /// Gets the appropriate <see cref="INotificationService{T}"/> implementation based on the provided <see cref="Notification"/>.
+        /// </summary>
+        /// <param name="notification">The notification to get the service for.</param>
+        /// <returns>The appropriate <see cref="INotificationService{T}"/> implementation for the provided notification derived type.</returns>
+        INotificationService<Notification> GetNotificationService(Notification notification);
     }
 }
