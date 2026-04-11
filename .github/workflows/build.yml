@@ -1,0 +1,72 @@
+name: Build Solution
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  check_duplicate_run:
+    runs-on: ubuntu-latest
+    outputs:
+      should_skip: ${{ steps.duplicate_check.outputs.should_skip }}
+    steps:
+      - id: duplicate_check
+        uses: fkirc/skip-duplicate-actions@v5
+        with:
+          concurrent_skipping: 'same_content' # Skips if the same content already has a run 
+
+  build:
+    needs: check_duplicate_run
+    if: needs.check_duplicate_run.outputs.should_skip != 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read #This is required for actions/checkout
+    env:
+      # For color output from the dotnet commands. ENVs are scoped to all steps in the job
+      DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION: true
+      TERM: xterm-256color
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get & store version number
+        id: release_version
+        run: |
+          version="$(date +%Y).$(date +%-m).${{ github.run_number }}.${{ github.run_attempt }}"
+          echo "$version" > ${{ vars.VERSION_FILE }}
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.x'
+
+      - name: Install dotnet-ef tool
+        run: dotnet tool install --global dotnet-ef --version ${{ vars.DOTNET_EF_VERSION }}  
+
+      - name: Restore with dotnet
+        run: dotnet restore ./src --verbosity normal
+
+      - name: Build with dotnet
+        run: dotnet build ./src --no-restore --configuration Release --verbosity normal -p:Version=${{ steps.release_version.outputs.version }}    
+
+      - name: Create EF Core bundle - ApplicationDbContext
+        if: inputs.deploy
+        run: |
+          dotnet ef migrations bundle --self-contained --configuration Release --no-build -o "${{ vars.DOTNET_ROOT }}/myapp/${{ vars.DOTNET_EF_BUNDLE_NAME_APPDBCTX }}" \
+          -p ./src/MH.Capstone.Domain -s ./src/MH.Capstone.WebApp -c ApplicationDbContext
+          && cp "${{ vars.DOTNET_ROOT }}/myapp/${{ vars.DOTNET_EF_BUNDLE_NAME_APPDBCTX }}" "./src/${{ vars.DOTNET_EF_BUNDLE_NAME_APPDBCTX }}"
+
+      - name: Create EF Core bundle - CacheDbContext
+        if: inputs.deploy
+        run: |
+          dotnet ef migrations bundle --self-contained --configuration Release --no-build -o "${{ vars.DOTNET_ROOT }}/myapp/${{ vars.DOTNET_EF_BUNDLE_NAME_CACHEDBCTX }}" \
+          -p ./src/MH.Capstone.Domain -s ./src/MH.Capstone.WebApp -c CacheDbContext
+          && cp "${{ vars.DOTNET_ROOT }}/myapp/${{ vars.DOTNET_EF_BUNDLE_NAME_CACHEDBCTX }}" "./src/${{ vars.DOTNET_EF_BUNDLE_NAME_CACHEDBCTX }}"
+
+      - name: Upload build artifact (binaries) for other jobs
+        id: artifact_upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.sha }}
+          path: ./src

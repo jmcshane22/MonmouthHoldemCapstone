@@ -1,0 +1,69 @@
+# WARNING: This workflow/action can only be run on the main repo (jmcshane22/MonmouthHoldemCapstone)
+name: Run Integration & E2E Tests (System Tests)
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  check_duplicate_run:
+    runs-on: ubuntu-latest
+    outputs:
+      should_skip: ${{ steps.duplicate_check.outputs.should_skip }}
+    steps:
+      - id: duplicate_check
+        uses: fkirc/skip-duplicate-actions@v5
+        with:
+          concurrent_skipping: 'same_content' # Skips if the same content already has a run
+
+  build:
+    needs: check_duplicate_run
+    if: needs.check_duplicate_run.outputs.should_skip != 'true' && github.repository == 'jmcshane22/MonmouthHoldemCapstone'
+    uses: ./.github/workflows/build.yml
+
+  system_tests:
+    needs: [check_duplicate_run,build]
+    if: needs.check_duplicate_run.outputs.should_skip != 'true' && github.repository == 'jmcshane22/MonmouthHoldemCapstone'
+    runs-on: ubuntu-latest
+    environment:
+      name: system_testing
+    env:
+      # For color output from the dotnet commands. ENVs are scoped to all steps in the job
+      DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION: true
+      TERM: xterm-256color
+      ASPNETCORE_ENVIRONMENT: Acceptance
+
+    steps:
+      - name: Download artifact from build job
+        id: artifact_download
+        uses: actions/download-artifact@v7
+        with:
+          name: ${{ github.sha }}
+          path: ./src
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.SYSTEST_AZUREAPPSERVICE_CLIENTID }}
+          tenant-id: ${{ secrets.SYSTEST_AZUREAPPSERVICE_TENANTID }}
+          subscription-id: ${{ secrets.SYSTEST_AZUREAPPSERVICE_SUBSCRIPTIONID }}
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.x'
+
+      - name: Ensure test database is migrated and ok
+        run: |
+          chmod +x ./src/${{ vars.DOTNET_EF_BUNDLE_NAME_APPDBCTX }} ./src/${{ vars.DOTNET_EF_BUNDLE_NAME_APPDBCTX }}
+          && ./src/${{ vars.DOTNET_EF_BUNDLE_NAME_APPDBCTX }} --connection '${{ secrets.SYSTEST_AZUREAPPSERVICE_DBCONNSTR }}' --verbose
+          && ./src/${{ vars.DOTNET_EF_BUNDLE_NAME_CACHEDBCTX  }} --connection '${{ secrets.SYSTEST_AZUREAPPSERVICE_DBCONNSTR }}' --verbose
+      
+      - name: Unit Test with dotnet
+        env:
+          ConnectionStrings__DataDb: ${{ secrets.SYSTEST_AZUREAPPSERVICE_DBCONNSTR }}
+          ConnectionStrings__AzureCommunicationServices: ${{ secrets.SYSTEST_AZURECOMMSERVICE_CONNSTR }}
+          Api__External__Ninjas__ApiKey: ${{ secrets.SYSTEST_NINJASAPI_APIKEY }}
+        run: | 
+          dotnet test ./src/MH.Capstone.Tests.Integration --no-restore --no-build --configuration Release --verbosity normal
+          ; dotnet test ./src/MH.Capstone.Tests.Acceptance --no-restore --no-build --configuration Release --verbosity normal
