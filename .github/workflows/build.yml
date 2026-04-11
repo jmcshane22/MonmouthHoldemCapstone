@@ -7,7 +7,6 @@ on:
 jobs:
   build:
     needs: check_for_sha_build_artifact
-    if: failure() # failure of the above jobs means we need to build this commit. If is succeeds, skip this
     runs-on: ubuntu-latest
     permissions:
       contents: read #This is required for actions/checkout
