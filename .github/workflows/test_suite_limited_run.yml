@@ -30,4 +30,4 @@ jobs:
   unit_tests:
     needs: [check_duplicate_run,build]
     if: needs.check_duplicate_run.outputs.should_skip != 'true'
-    uses: ./.github/workflows/ef_core_tests.yml
+    uses: ./.github/workflows/unit_tests.yml

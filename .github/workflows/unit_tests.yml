@@ -1,3 +1,4 @@
+#TODO - Add Jest testing once implemented
 name: Run Unit Tests
 
 on:
@@ -46,5 +47,3 @@ jobs:
         run: | 
           dotnet test ./src/MH.Capstone.WebApp.Tests.Unit --no-restore --no-build --configuration Release --verbosity normal
           ; dotnet test ./src/MH.Capstone.Domain.Tests.Unit --no-restore --no-build --configuration Release --verbosity normal
-
-      #TODO - Add Jest testing once implemented
