@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: Check for existing build artifact for commit
-        id: artifact_check
+        id: check_artifact
         uses: softwareforgood/check-artifact-v4-existence@v0
         with:
           name: ${{ github.sha }}
