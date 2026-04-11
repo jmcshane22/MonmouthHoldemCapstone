@@ -52,16 +52,14 @@ jobs:
       - name: Create EF Core bundle - ApplicationDbContext
         if: steps.check_artifact.outputs.exists != 'true' 
         run: |
-          dotnet ef migrations bundle --self-contained --configuration Release --no-build -o "${{ vars.DOTNET_ROOT }}/myapp/${{ vars.DOTNET_EF_BUNDLE_NAME_APPDBCTX }}" \
+          dotnet ef migrations bundle --self-contained --configuration Release --no-build -o "./src/${{ vars.DOTNET_EF_BUNDLE_NAME_APPDBCTX }}" \
           -p ./src/MH.Capstone.Domain -s ./src/MH.Capstone.WebApp -c ApplicationDbContext
-          && cp "${{ vars.DOTNET_ROOT }}/myapp/${{ vars.DOTNET_EF_BUNDLE_NAME_APPDBCTX }}" "./src/${{ vars.DOTNET_EF_BUNDLE_NAME_APPDBCTX }}"
 
       - name: Create EF Core bundle - CacheDbContext
         if: steps.check_artifact.outputs.exists != 'true' 
         run: |
-          dotnet ef migrations bundle --self-contained --configuration Release --no-build -o "${{ vars.DOTNET_ROOT }}/myapp/${{ vars.DOTNET_EF_BUNDLE_NAME_CACHEDBCTX }}" \
+          dotnet ef migrations bundle --self-contained --configuration Release --no-build -o "./src/${{ vars.DOTNET_EF_BUNDLE_NAME_CACHEDBCTX }}" \
           -p ./src/MH.Capstone.Domain -s ./src/MH.Capstone.WebApp -c CacheDbContext
-          && cp "${{ vars.DOTNET_ROOT }}/myapp/${{ vars.DOTNET_EF_BUNDLE_NAME_CACHEDBCTX }}" "./src/${{ vars.DOTNET_EF_BUNDLE_NAME_CACHEDBCTX }}"
 
       - name: Upload build artifact (binaries) for other jobs
         id: artifact_upload
