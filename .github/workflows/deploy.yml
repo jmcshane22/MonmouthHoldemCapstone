@@ -42,6 +42,11 @@ jobs:
           name: ${{ github.sha }}
           path: ./src
 
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.x'
+
       - name: Get build version number
         id: get_build_version
         run: echo "version=$(cat ${{ vars.VERSION_FILE }})" >> $GITHUB_OUTPUT
