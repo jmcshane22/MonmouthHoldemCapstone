@@ -6,24 +6,13 @@ on:
   workflow_call:
 
 jobs:
-  check_duplicate_run:
-    runs-on: ubuntu-latest
-    outputs:
-      should_skip: ${{ steps.duplicate_check.outputs.should_skip }}
-    steps:
-      - id: duplicate_check
-        uses: fkirc/skip-duplicate-actions@v5
-        with:
-          concurrent_skipping: 'same_content' # Skips if the same content already has a run
-
   build:
-    needs: check_duplicate_run
-    if: needs.check_duplicate_run.outputs.should_skip != 'true' && github.repository == 'jmcshane22/MonmouthHoldemCapstone'
+    if: github.repository == 'jmcshane22/MonmouthHoldemCapstone'
     uses: ./.github/workflows/build.yml
 
   system_tests:
-    needs: [check_duplicate_run,build]
-    if: needs.check_duplicate_run.outputs.should_skip != 'true' && github.repository == 'jmcshane22/MonmouthHoldemCapstone'
+    needs: build
+    if: github.repository == 'jmcshane22/MonmouthHoldemCapstone'
     runs-on: ubuntu-latest
     environment:
       name: system_testing

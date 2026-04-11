@@ -5,24 +5,11 @@ on:
   workflow_call:
 
 jobs:
-  check_duplicate_run:
-    runs-on: ubuntu-latest
-    outputs:
-      should_skip: ${{ steps.duplicate_check.outputs.should_skip }}
-    steps:
-      - id: duplicate_check
-        uses: fkirc/skip-duplicate-actions@v5
-        with:
-          concurrent_skipping: 'same_content' # Skips if the same content already has a run
-
   build:
-    needs: check_duplicate_run
-    if: needs.check_duplicate_run.outputs.should_skip != 'true'
     uses: ./.github/workflows/build.yml
   
   validate_ef:
-    needs: [check_duplicate_run,build]
-    if: needs.check_duplicate_run.outputs.should_skip != 'true'
+    needs: build
     runs-on: ubuntu-latest
     env:
       # For color output from the dotnet commands. ENVs are scoped to all steps in the job
