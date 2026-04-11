@@ -6,13 +6,8 @@ on:
   workflow_call:
 
 jobs:
-  # Done as a step and not a workflow job as skipping a step isn't a failure condition,
-  # but skipping a job is, but our build workflow skipping is a valid outcome
   build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Build Workflow Call
-        uses: ./.github/workflows/build.yml 
+    uses: ./.github/workflows/build.yml 
 
   unit_tests:
     needs: build
