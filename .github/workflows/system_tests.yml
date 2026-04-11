@@ -22,8 +22,6 @@ jobs:
     permissions:
       actions: read    # Required to download artifact from the source run
       id-token: write  # Required for Azure OIDC login
-    environment:
-      name: system_testing
     env:
       # For color output from the dotnet commands. ENVs are scoped to all steps in the job
       DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION: true
@@ -54,9 +52,9 @@ jobs:
 
       - name: Ensure test database is migrated and ok
         run: |
-          chmod +x ./src/${{ vars.DOTNET_EF_BUNDLE_NAME_APPDBCTX }} ./src/${{ vars.DOTNET_EF_BUNDLE_NAME_APPDBCTX }}
-          && ./src/${{ vars.DOTNET_EF_BUNDLE_NAME_APPDBCTX }} --connection '${{ secrets.SYSTEST_AZUREAPPSERVICE_DBCONNSTR }}' --verbose
-          && ./src/${{ vars.DOTNET_EF_BUNDLE_NAME_CACHEDBCTX  }} --connection '${{ secrets.SYSTEST_AZUREAPPSERVICE_DBCONNSTR }}' --verbose
+          chmod +x ./src/${{ vars.DOTNET_EF_BUNDLE_NAME_APPDBCTX }} ./src/${{ vars.DOTNET_EF_BUNDLE_NAME_APPDBCTX }} &&
+          ./src/${{ vars.DOTNET_EF_BUNDLE_NAME_APPDBCTX }} --connection '${{ secrets.SYSTEST_AZUREAPPSERVICE_DBCONNSTR }}' --verbose &&
+          ./src/${{ vars.DOTNET_EF_BUNDLE_NAME_CACHEDBCTX  }} --connection '${{ secrets.SYSTEST_AZUREAPPSERVICE_DBCONNSTR }}' --verbose
 
       - name: Unit Test with dotnet
         env:
@@ -64,5 +62,5 @@ jobs:
           ConnectionStrings__AzureCommunicationServices: ${{ secrets.SYSTEST_AZURECOMMSERVICE_CONNSTR }}
           Api__External__Ninjas__ApiKey: ${{ secrets.SYSTEST_NINJASAPI_APIKEY }}
         run: |
-          dotnet test ./src/MH.Capstone.Tests.Integration --no-restore --no-build --configuration Release --verbosity normal
-          ; dotnet test ./src/MH.Capstone.Tests.Acceptance --no-restore --no-build --configuration Release --verbosity normal
+          dotnet test ./src/MH.Capstone.Tests.Integration --no-restore --no-build --configuration Release --verbosity normal ;
+          dotnet test ./src/MH.Capstone.Tests.Acceptance --no-restore --no-build --configuration Release --verbosity normal
