@@ -25,45 +25,45 @@ jobs:
 
       - name: Get & store version number
         id: release_version
-        if: steps.check_artifact.outputs.exists != 'true'
+        if: steps.check_artifact.outputs.exists != true
         run: |
           version="$(date +%Y).$(date +%-m).${{ github.run_number }}.${{ github.run_attempt }}"
           echo "$version" > ${{ vars.VERSION_FILE }}
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - name: Set up .NET Core
-        if: steps.check_artifact.outputs.exists != 'true'
+        if: steps.check_artifact.outputs.exists != true
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.x'
 
       - name: Install dotnet-ef tool
-        if: steps.check_artifact.outputs.exists != 'true'
+        if: steps.check_artifact.outputs.exists != true
         run: dotnet tool install --global dotnet-ef --version ${{ vars.DOTNET_EF_VERSION }}  
 
       - name: Restore with dotnet
-        if: steps.check_artifact.outputs.exists != 'true'
+        if: steps.check_artifact.outputs.exists != true
         run: dotnet restore ./src --verbosity normal
 
       - name: Build with dotnet
-        if: steps.check_artifact.outputs.exists != 'true'  
+        if: steps.check_artifact.outputs.exists != true
         run: dotnet build ./src --no-restore --configuration Release --verbosity normal -p:Version=${{ steps.release_version.outputs.version }}    
 
       - name: Create EF Core bundle - ApplicationDbContext
-        if: steps.check_artifact.outputs.exists != 'true' 
+        if: steps.check_artifact.outputs.exists != true
         run: |
           dotnet ef migrations bundle --self-contained --configuration Release --no-build -o "./src/${{ vars.DOTNET_EF_BUNDLE_NAME_APPDBCTX }}" \
           -p ./src/MH.Capstone.Domain -s ./src/MH.Capstone.WebApp -c ApplicationDbContext
 
       - name: Create EF Core bundle - CacheDbContext
-        if: steps.check_artifact.outputs.exists != 'true' 
+        if: steps.check_artifact.outputs.exists != true
         run: |
           dotnet ef migrations bundle --self-contained --configuration Release --no-build -o "./src/${{ vars.DOTNET_EF_BUNDLE_NAME_CACHEDBCTX }}" \
           -p ./src/MH.Capstone.Domain -s ./src/MH.Capstone.WebApp -c CacheDbContext
 
       - name: Upload build artifact (binaries) for other jobs
         id: artifact_upload
-        if: steps.check_artifact.outputs.exists != 'true' 
+        if: steps.check_artifact.outputs.exists != true
         uses: actions/upload-artifact@v4
         with:
           name: ${{ github.sha }}
