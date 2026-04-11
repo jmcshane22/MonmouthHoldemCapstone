@@ -6,6 +6,11 @@ on:
     types: [synchronize, ready_for_review, opened, reopened]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  actions: read
+  id-token: write  # Required transitively for Azure OIDC login in system_tests
+
 jobs:
   build:
     if: github.repository == 'jmcshane22/MonmouthHoldemCapstone' && github.event.pull_request.draft == false

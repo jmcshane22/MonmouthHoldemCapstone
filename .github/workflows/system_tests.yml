@@ -5,6 +5,11 @@ on:
   workflow_dispatch:
   workflow_call:
 
+permissions:
+  contents: read
+  actions: read
+  id-token: write  # Required for Azure OIDC login
+
 jobs:
   build:
     if: github.repository == 'jmcshane22/MonmouthHoldemCapstone'

@@ -8,12 +8,13 @@ on:
         description: "The workflow run ID where the build artifact was uploaded"
         value: ${{ jobs.build.outputs.source_run_id }}
 
+permissions:
+  contents: read  # Required for actions/checkout
+  actions: read   # Required for querying artifacts across runs
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read  # Required for actions/checkout
-      actions: read   # Required for querying artifacts across runs
     outputs:
       source_run_id: ${{ steps.check_artifact.outputs.source_run_id }}
     env:
