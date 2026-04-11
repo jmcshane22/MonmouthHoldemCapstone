@@ -8,12 +8,15 @@ on:
 jobs:
   build:
     if: github.repository == 'jmcshane22/MonmouthHoldemCapstone'
-    uses: ./.github/workflows/build.yml 
+    uses: ./.github/workflows/build.yml
 
   system_tests:
     needs: build
     if: github.repository == 'jmcshane22/MonmouthHoldemCapstone'
     runs-on: ubuntu-latest
+    permissions:
+      actions: read    # Required to download artifact from the source run
+      id-token: write  # Required for Azure OIDC login
     environment:
       name: system_testing
     env:
@@ -25,9 +28,11 @@ jobs:
     steps:
       - name: Download artifact from build job
         id: artifact_download
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v4
         with:
           name: ${{ github.sha }}
+          run-id: ${{ needs.build.outputs.source_run_id }}
+          github-token: ${{ github.token }}
           path: ./src
 
       - name: Login to Azure
@@ -47,12 +52,12 @@ jobs:
           chmod +x ./src/${{ vars.DOTNET_EF_BUNDLE_NAME_APPDBCTX }} ./src/${{ vars.DOTNET_EF_BUNDLE_NAME_APPDBCTX }}
           && ./src/${{ vars.DOTNET_EF_BUNDLE_NAME_APPDBCTX }} --connection '${{ secrets.SYSTEST_AZUREAPPSERVICE_DBCONNSTR }}' --verbose
           && ./src/${{ vars.DOTNET_EF_BUNDLE_NAME_CACHEDBCTX  }} --connection '${{ secrets.SYSTEST_AZUREAPPSERVICE_DBCONNSTR }}' --verbose
-      
+
       - name: Unit Test with dotnet
         env:
           ConnectionStrings__DataDb: ${{ secrets.SYSTEST_AZUREAPPSERVICE_DBCONNSTR }}
           ConnectionStrings__AzureCommunicationServices: ${{ secrets.SYSTEST_AZURECOMMSERVICE_CONNSTR }}
           Api__External__Ninjas__ApiKey: ${{ secrets.SYSTEST_NINJASAPI_APIKEY }}
-        run: | 
+        run: |
           dotnet test ./src/MH.Capstone.Tests.Integration --no-restore --no-build --configuration Release --verbosity normal
           ; dotnet test ./src/MH.Capstone.Tests.Acceptance --no-restore --no-build --configuration Release --verbosity normal

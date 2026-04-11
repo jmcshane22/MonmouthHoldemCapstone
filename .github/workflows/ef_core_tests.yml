@@ -6,22 +6,26 @@ on:
 
 jobs:
   build:
-    uses: ./.github/workflows/build.yml      
-  
+    uses: ./.github/workflows/build.yml
+
   validate_ef:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      actions: read  # Required to download artifact from the source run
     env:
       # For color output from the dotnet commands. ENVs are scoped to all steps in the job
       DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION: true
       TERM: xterm-256color
-      
+
     steps:
       - name: Download artifact from build job
         id: artifact_download
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v4
         with:
           name: ${{ github.sha }}
+          run-id: ${{ needs.build.outputs.source_run_id }}
+          github-token: ${{ github.token }}
           path: ./src
 
       - name: Set up .NET Core
