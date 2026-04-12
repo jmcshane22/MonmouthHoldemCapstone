@@ -23,6 +23,7 @@ jobs:
       actions: read    # Required to download artifact from the source run
       id-token: write  # Required for Azure OIDC login
       contents: read
+    environment: system_testing
     env:
       # For color output from the dotnet commands. ENVs are scoped to all steps in the job
       DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION: true
