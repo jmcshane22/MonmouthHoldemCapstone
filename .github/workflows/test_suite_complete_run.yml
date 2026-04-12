@@ -5,6 +5,7 @@ on:
   pull_request:
     types: [synchronize, ready_for_review, opened, reopened]
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
