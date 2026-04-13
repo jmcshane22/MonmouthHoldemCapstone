@@ -67,5 +67,7 @@ jobs:
           ConnectionStrings__AzureCommunicationServices: ${{ secrets.SYSTEST_AZURECOMMSERVICE_CONNSTR }}
           Api__External__Ninjas__ApiKey: ${{ secrets.SYSTEST_NINJASAPI_APIKEY }}
         run: |
-          dotnet test ./src/MH.Capstone.Tests.Integration --no-restore --no-build --configuration Release --verbosity normal ;
-          dotnet test ./src/MH.Capstone.Tests.Acceptance --no-restore --no-build --configuration Release --verbosity normal
+          dotnet test ./src/MH.Capstone.Tests.Integration/MH.Capstone.Tests.Integration.csproj \ 
+            --no-restore --no-build --configuration Release --verbosity normal ;
+          dotnet test ./src/MH.Capstone.Tests.Acceptance/MH.Capstone.Tests.Acceptance.csproj \ 
+          --no-restore --no-build --configuration Release --verbosity normal
