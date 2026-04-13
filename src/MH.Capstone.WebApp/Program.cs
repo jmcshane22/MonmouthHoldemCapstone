@@ -115,12 +115,12 @@ namespace MH.Capstone.WebApp
             builder.Services.AddScoped<ILeaderboardService, LeaderboardService>();
             builder.Services.AddScoped<IReportService, ReportService>();
 
-            // Configure Azure Communication Services Email client depending on environment and feature flag
+            // Configure Azure Communication Services Email client depending on feature flag state and when EF is not in design-time
             var emailConnectionString = builder.Configuration.GetConnectionString("AzureCommunicationServices");
             var emailSender = builder.Configuration.GetValue<string>("Email:SenderAddress");
             var useRealEmailer = featureFlags.IsEnabled("UseRealEmailerService");
 
-            if (useRealEmailer)
+            if (useRealEmailer && !EF.IsDesignTime)
             {
                 if (string.IsNullOrWhiteSpace(emailConnectionString) || string.IsNullOrWhiteSpace(emailSender))
                 {
@@ -150,11 +150,14 @@ namespace MH.Capstone.WebApp
                 entryLogger.LogInformation("NoOpEmailService registered (feature flag disabled).");
             }
 
-            // Configure Ninja API Caller
-            const string ninjasApiConfigSectionPath = "Api:External:Ninjas";
-            builder.Services.AddExternalApiCaller<NinjaApiConfigValues>(builder.Configuration,
-                builder.Environment, entryLogger, ninjasApiConfigSectionPath,
-                opts => opts.UseCacheProxy<NinjaAnimalCacheEntity>());
+            // Configure Ninja API Caller when EF is not running for design-time
+            if (!EF.IsDesignTime)
+            {
+                const string ninjasApiConfigSectionPath = "Api:External:Ninjas";
+                builder.Services.AddExternalApiCaller<NinjaApiConfigValues>(builder.Configuration,
+                    builder.Environment, entryLogger, ninjasApiConfigSectionPath,
+                    opts => opts.UseCacheProxy<NinjaAnimalCacheEntity>());
+            }
 
             // Add controllers with views and configure Newtonsoft.Json for JSON serialization
             builder.Services.AddControllersWithViews()

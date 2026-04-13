@@ -90,17 +90,6 @@ jobs:
           dotnet ef migrations bundle --self-contained --configuration Release \
           --no-build -o "./src/${{ vars.DOTNET_EF_BUNDLE_DIR }}/${{ vars.DOTNET_EF_BUNDLE_NAME_CACHEDBCTX }}" \
           -p ./src/MH.Capstone.Domain -s ./src/MH.Capstone.WebApp -c CacheDbContext
-
-      - name: Copy appsettings file for EF Core
-        id: cp_appsettings
-        if: steps.check_artifact.outputs.skip_build != 'true'
-        run: |
-          cp ./src/MH.Capstone.WebApp/appsettings.json ./src/${{ vars.DOTNET_EF_BUNDLE_DIR }}/appsettings.json &&
-          cp ./src/MH.Capstone.WebApp/appsettings.json ./appsettings.json
-
-      - name: Copy appsettings DEBUG
-        if: ${{ steps.cp_appsettings.outcome }} == 'failure'
-        run: ls -a ./
       
       - name: Upload build artifact (binaries) for other jobs
         id: artifact_upload
