@@ -55,7 +55,7 @@ jobs:
       - name: Ensure test database is migrated and ok
         run: |
           chmod +x ./src/${{ vars.DOTNET_EF_BUNDLE_DIR }}/${{ vars.DOTNET_EF_BUNDLE_NAME_APPDBCTX }} \
-            ./src/${{ vars.DOTNET_EF_BUNDLE_DIR }}/${{ vars.DOTNET_EF_BUNDLE_NAME_APPDBCTX }} &&
+            ./src/${{ vars.DOTNET_EF_BUNDLE_DIR }}/${{ vars.DOTNET_EF_BUNDLE_NAME_CACHEDBCTX }} &&
           ./src/${{ vars.DOTNET_EF_BUNDLE_DIR }}/${{ vars.DOTNET_EF_BUNDLE_NAME_APPDBCTX }} \
             --connection '${{ secrets.SYSTEST_AZUREAPPSERVICE_DBCONNSTR }}' --verbose &&
           ./src/${{ vars.DOTNET_EF_BUNDLE_DIR }}/${{ vars.DOTNET_EF_BUNDLE_NAME_CACHEDBCTX  }} \
