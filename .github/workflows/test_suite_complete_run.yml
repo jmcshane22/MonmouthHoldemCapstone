@@ -13,50 +13,7 @@ permissions:
   id-token: write  # Required transitively for Azure OIDC login in system_tests
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    permissions:
-      actions: read    # Required to download artifact from the source run
-      id-token: write  # Required for Azure OIDC login
-      contents: read
-    environment: system_testing
-    steps:
-      - run: |
-          EXIT_CODE=0
-          if [ -n "${{ secrets.SYSTEST_AZUREAPPSERVICE_CLIENTID }}" ]; then
-            echo "::notice::Client ID not null"
-          else
-            echo "::error::Client ID is null"
-            EXIT_CODE=1
-          fi
-          if [ -n "${{ secrets.SYSTEST_AZUREAPPSERVICE_SUBSCRIPTIONID }}" ]; then
-            echo "::notice::Subscription ID not null"
-          else
-            echo "::error::Subscription ID is null"
-            EXIT_CODE=1
-          fi 
-          if [ -n "${{ secrets.SYSTEST_AZUREAPPSERVICE_TENANTID }}" ]; then
-            echo "::notice::Tenant ID not null"
-          else
-            echo "::error::Tenant ID is null"
-            EXIT_CODE=1
-          fi
-          if [ -n "${{ secrets.SYSTEST_AZUREAPPSERVICE_DBCONNSTR }}" ]; then
-            echo "::notice::DB ConnStr not null"
-          else
-            echo "::error::DB ConnStr is null"
-            EXIT_CODE=1
-          fi 
-          if [ -n "${{ secrets.SYSTEST_AZURECOMMSERVICE_CONNSTR }}" ]; then
-            echo "::notice::Azure COMM ConnStr not null"
-          else
-            echo "::error::Azure COMM ConnStr is null"
-            EXIT_CODE=1
-          fi
-          exit $EXIT_CODE
-
   build:
-    needs: test
     if: github.repository == 'jmcshane22/MonmouthHoldemCapstone' && (github.event_name == 'workflow_dispatch' || github.event.pull_request.draft == false)
     uses: ./.github/workflows/build.yml
 
