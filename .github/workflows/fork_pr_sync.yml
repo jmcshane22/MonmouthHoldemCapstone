@@ -2,8 +2,9 @@
 name: Fork PR - Sync to Main Repo for Testing
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review, closed]
+  workflow_dispatch:
+  #pull_request:
+    #types: [opened, synchronize, reopened, ready_for_review, closed]
 
 permissions:
   contents: write  # Required to push sync branch

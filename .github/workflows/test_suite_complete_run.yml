@@ -2,8 +2,8 @@
 name: Run Complete Test Suite (All Tests) 
 
 on:
-  #pull_request:
-    #types: [synchronize, ready_for_review, opened, reopened]
+  pull_request_target:
+    types: [synchronize, ready_for_review, opened, reopened]
   workflow_dispatch:
   workflow_call:
 
