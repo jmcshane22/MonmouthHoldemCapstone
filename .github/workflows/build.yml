@@ -80,15 +80,21 @@ jobs:
       - name: Create EF Core bundle - ApplicationDbContext
         if: steps.check_artifact.outputs.skip_build != 'true'
         run: |
-          dotnet ef migrations bundle --self-contained --configuration Release --no-build -o "./src/${{ vars.DOTNET_EF_BUNDLE_NAME_APPDBCTX }}" \
+          dotnet ef migrations bundle --self-contained --configuration Release --no-build \
+          -o "./src/${{ vars.DOTNET_EF_BUNDLE_DIR }}/${{ vars.DOTNET_EF_BUNDLE_NAME_APPDBCTX }}" \
           -p ./src/MH.Capstone.Domain -s ./src/MH.Capstone.WebApp -c ApplicationDbContext
 
       - name: Create EF Core bundle - CacheDbContext
         if: steps.check_artifact.outputs.skip_build != 'true'
         run: |
-          dotnet ef migrations bundle --self-contained --configuration Release --no-build -o "./src/${{ vars.DOTNET_EF_BUNDLE_NAME_CACHEDBCTX }}" \
+          dotnet ef migrations bundle --self-contained --configuration Release \
+          --no-build -o "./src/${{ vars.DOTNET_EF_BUNDLE_DIR }}/${{ vars.DOTNET_EF_BUNDLE_NAME_CACHEDBCTX }}" \
           -p ./src/MH.Capstone.Domain -s ./src/MH.Capstone.WebApp -c CacheDbContext
 
+      - name: Copy appsettings file for EF Core
+        if: steps.check_artifact.outputs.skip_build != 'true'
+        run: cp ./src/${{ vars.DOTNET_APPSETTINGS_FILENAME }} ./src/appsettings.json
+      
       - name: Upload build artifact (binaries) for other jobs
         id: artifact_upload
         if: steps.check_artifact.outputs.skip_build != 'true'
