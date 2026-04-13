@@ -55,7 +55,7 @@ jobs:
       - name: Publish
         id: publish_app
         run: |
-          dotnet publish ./src/MH.Capstone.WebApp --no-restore --no-build --configuration Release --verbosity normal \
+          dotnet publish ./src/MH.Capstone.WebApp --no-restore --no-build --configuration Release --verbosity ${{ vars.DOTNET_VERBOSE_LVL }} \
           -o "${{ vars.PUBLISH_ROOT_DIR }}/${{ vars.WEBAPP_PUBLISH_DIR }}"
 
   config:

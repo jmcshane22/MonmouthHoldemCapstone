@@ -40,5 +40,7 @@ jobs:
 
       - name: Unit Test with dotnet
         run: |
-          dotnet test ./src/MH.Capstone.WebApp.Tests.Unit/MH.Capstone.WebApp.Tests.Unit.csproj --no-restore --no-build --configuration Release --verbosity normal ;
-          dotnet test ./src/MH.Capstone.Domain.Tests.Unit/MH.Capstone.Domain.Tests.Unit.csproj --no-restore --no-build --configuration Release --verbosity normal
+          dotnet test "./src/MH.Capstone.WebApp.Tests.Unit/MH.Capstone.WebApp.Tests.Unit.csproj" \
+            --no-restore --no-build --configuration Release --verbosity ${{ vars.DOTNET_VERBOSE_LVL }} ;
+          dotnet test "./src/MH.Capstone.Domain.Tests.Unit/MH.Capstone.Domain.Tests.Unit.csproj" \
+            --no-restore --no-build --configuration Release --verbosity ${{ vars.DOTNET_VERBOSE_LVL }}

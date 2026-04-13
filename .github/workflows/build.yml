@@ -71,11 +71,11 @@ jobs:
 
       - name: Restore with dotnet
         if: steps.check_artifact.outputs.skip_build != 'true'
-        run: dotnet restore ./src --verbosity normal
+        run: dotnet restore ./src --verbosity ${{ vars.DOTNET_VERBOSE_LVL }}
 
       - name: Build with dotnet
         if: steps.check_artifact.outputs.skip_build != 'true'
-        run: dotnet build ./src --no-restore --configuration Release --verbosity normal -p:Version=${{ steps.release_version.outputs.version }}
+        run: dotnet build ./src --no-restore --configuration Release --verbosity ${{ vars.DOTNET_VERBOSE_LVL }} -p:Version=${{ steps.release_version.outputs.version }}
 
       - name: Create EF Core bundle - ApplicationDbContext
         if: steps.check_artifact.outputs.skip_build != 'true'
