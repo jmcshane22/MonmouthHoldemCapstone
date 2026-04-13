@@ -61,7 +61,7 @@ jobs:
           ./src/${{ vars.DOTNET_EF_BUNDLE_DIR }}/${{ vars.DOTNET_EF_BUNDLE_NAME_CACHEDBCTX  }} \
             --connection '${{ secrets.SYSTEST_AZUREAPPSERVICE_DBCONNSTR }}' --verbose
       
-      - name: Unit Test with dotnet
+      - name: Run Integration & Acceptance (BDD/Gherkin/Reqnroll) Tests
         env:
           ConnectionStrings__DataDb: ${{ secrets.SYSTEST_AZUREAPPSERVICE_DBCONNSTR }}
           ConnectionStrings__AzureCommunicationServices: ${{ secrets.SYSTEST_AZURECOMMSERVICE_CONNSTR }}

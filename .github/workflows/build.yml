@@ -98,3 +98,4 @@ jobs:
         with:
           name: ${{ github.sha }}
           path: ./src
+          retention-days: 1 # Keep the big build file from eating storage usage limits
