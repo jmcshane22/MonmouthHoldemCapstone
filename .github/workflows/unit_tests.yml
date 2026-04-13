@@ -36,11 +36,10 @@ jobs:
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.x'
+          dotnet-version: '9.0.x'
 
       - name: Unit Test with dotnet
         run: |
-          dotnet test "./src/MH.Capstone.WebApp.Tests.Unit/MH.Capstone.WebApp.Tests.Unit.csproj" \
-            --no-restore --no-build --configuration Release --verbosity ${{ vars.DOTNET_VERBOSE_LVL }} ;
-          dotnet test "./src/MH.Capstone.Domain.Tests.Unit/MH.Capstone.Domain.Tests.Unit.csproj" \
-            --no-restore --no-build --configuration Release --verbosity ${{ vars.DOTNET_VERBOSE_LVL }}
+          ls -a ./src ;
+          dotnet test ./src/MH.Capstone.WebApp.Tests.Unit --no-restore --no-build --configuration Release --verbosity ${{ vars.DOTNET_VERBOSE_LVL }} ;
+          dotnet test ./src/MH.Capstone.Domain.Tests.Unit --no-restore --no-build --configuration Release --verbosity ${{ vars.DOTNET_VERBOSE_LVL }}

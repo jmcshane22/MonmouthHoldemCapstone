@@ -63,7 +63,7 @@ jobs:
         if: steps.check_artifact.outputs.skip_build != 'true'
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.x'
+          dotnet-version: '9.0.x'
 
       - name: Install dotnet-ef tool
         if: steps.check_artifact.outputs.skip_build != 'true'
