@@ -28,19 +28,23 @@ namespace MH.Capstone.WebApp
             builder.Services.AddSingleton(featureFlags);
             entryLogger.LogInformation("FeatureFlags registered from configuration.");
 
+            // Obtain DB Connection String
             const string appConnStrName = "DataDb"; // For application data
+            string? appConnStr = builder.Configuration.GetConnectionString(appConnStrName);
+            if (string.IsNullOrEmpty(appConnStr) && !EF.IsDesignTime)
+            {
+                // Throw is the connection string was not found and EF is not in design-time
+                throw new InvalidOperationException($"Connection string {appConnStrName} not found in app settings file.\n\t" +
+                    $"ENV is {builder.Environment.EnvironmentName}.");
+            }
             
             // Add EF Core DbContexts
             builder.Services.AddDbContext<ApplicationDbContext>(opt => opt
                 .UseLazyLoadingProxies()
-                .UseSqlServer(
-                    builder.Configuration.GetConnectionString(appConnStrName)
-                    ?? throw new InvalidOperationException($"Connection string {appConnStrName} not found in app settings file.\n\t" +
-                        $"ENV is {builder.Environment.EnvironmentName}."),
-                    sqlOptions => 
-                        // Handle transient Azure SQL failures
-                        sqlOptions.EnableRetryOnFailure()
-                            .MigrationsHistoryTable("__EFMigrationsHistory_ApplicationDbContext"))
+                .UseSqlServer(appConnStr, sqlOptions =>
+                    // Handle transient Azure SQL failures
+                    sqlOptions.EnableRetryOnFailure()
+                        .MigrationsHistoryTable("__EFMigrationsHistory_ApplicationDbContext"))
                     // Must implement the synchronous SeedData method for EF Core Tooling.
                     .UseSeeding((context, _) => {
                         if (context is ApplicationDbContext appSyncContext)
@@ -49,8 +53,7 @@ namespace MH.Capstone.WebApp
                         }
                     })
                     // This is the preferred call by any part of EF Core that can support Async calls.
-                    .UseAsyncSeeding(async (context, _, token) =>
-                    {
+                    .UseAsyncSeeding(async (context, _, token) => {
                         if (context is ApplicationDbContext appAsyncContext)
                         {
                             await ApplicationDbContextSeeding.SeedDataAsync(appAsyncContext, _, token);
@@ -61,14 +64,10 @@ namespace MH.Capstone.WebApp
             // Register second DbContext for caching (uses same connection string/options as ApplicationDbContext, no seeding)
             builder.Services.AddDbContext<CacheDbContext>(opt => opt
                 .UseLazyLoadingProxies()
-                .UseSqlServer(
-                    builder.Configuration.GetConnectionString(appConnStrName)
-                    ?? throw new InvalidOperationException($"Connection string {appConnStrName} not found in app settings file.\n\t" +
-                        $"ENV is {builder.Environment.EnvironmentName}."),
-                    sqlOptions => 
-                        // Handle transient Azure SQL failures
-                        sqlOptions.EnableRetryOnFailure()
-                            .MigrationsHistoryTable("__EFMigrationsHistory_ApplicationDbContext"))
+                .UseSqlServer(appConnStr, sqlOptions => 
+                    // Handle transient Azure SQL failures
+                    sqlOptions.EnableRetryOnFailure()
+                        .MigrationsHistoryTable("__EFMigrationsHistory_ApplicationDbContext"))
             );
 
             // Configure Identity for authentication
