@@ -91,7 +91,7 @@ jobs:
 
       - name: Upload publish artifact for deploy job
         id: artifact_upload
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ vars.FILEPATH_SAFE_APPNAME }}_v${{ steps.get_build_version.outputs.version }}
           path: ./${{ vars.PUBLISH_ROOT_DIR }}
