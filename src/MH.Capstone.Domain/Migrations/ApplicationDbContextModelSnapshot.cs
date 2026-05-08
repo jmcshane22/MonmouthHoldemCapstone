@@ -378,6 +378,10 @@ namespace MH.Capstone.Domain.DataAccess.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("ClientSightingId")
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
+
                     b.Property<string>("Description")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
@@ -443,7 +447,9 @@ namespace MH.Capstone.Domain.DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserIdentityId");
+                    b.HasIndex("UserIdentityId", "ClientSightingId")
+                        .IsUnique()
+                        .HasFilter("[ClientSightingId] IS NOT NULL");
 
                     b.ToTable("Sighting");
                 });
