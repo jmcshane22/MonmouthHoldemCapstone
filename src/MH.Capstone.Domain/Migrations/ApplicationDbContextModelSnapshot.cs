@@ -273,6 +273,31 @@ namespace MH.Capstone.Domain.DataAccess.Migrations
                     b.ToTable("EmailQueue");
                 });
 
+            modelBuilder.Entity("MH.Capstone.Domain.DataModels.LiveNotificationPreference", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("LiveUpdatesEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("LiveNotificationPreferences");
+                });
+
             modelBuilder.Entity("MH.Capstone.Domain.DataModels.Message", b =>
                 {
                     b.Property<Guid>("Id")
@@ -681,6 +706,17 @@ namespace MH.Capstone.Domain.DataAccess.Migrations
                     b.Navigation("Club");
 
                     b.Navigation("Member");
+                });
+
+            modelBuilder.Entity("MH.Capstone.Domain.DataModels.LiveNotificationPreference", b =>
+                {
+                    b.HasOne("MH.Capstone.Domain.DataModels.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("MH.Capstone.Domain.DataModels.Message", b =>
