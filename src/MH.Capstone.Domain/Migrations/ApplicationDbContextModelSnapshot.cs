@@ -219,6 +219,86 @@ namespace MH.Capstone.Domain.DataAccess.Migrations
                     b.ToTable("ClubMembership");
                 });
 
+            modelBuilder.Entity("MH.Capstone.Domain.DataModels.Comment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AuthorIdentityId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)")
+                        .HasColumnName("AuthorId");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("HiddenAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("HiddenByIdentityId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("HiddenReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<bool>("IsHidden")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("SightingId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorIdentityId");
+
+                    b.HasIndex("SightingId");
+
+                    b.ToTable("Comment");
+                });
+
+            modelBuilder.Entity("MH.Capstone.Domain.DataModels.CommentModerationLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Action")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("CommentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ModeratorIdentityId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)")
+                        .HasColumnName("ModeratorId");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CommentId");
+
+                    b.HasIndex("ModeratorIdentityId");
+
+                    b.ToTable("CommentModerationLog");
+                });
+
             modelBuilder.Entity("MH.Capstone.Domain.DataModels.EmailQueue", b =>
                 {
                     b.Property<Guid>("Id")
@@ -520,6 +600,68 @@ namespace MH.Capstone.Domain.DataAccess.Migrations
                     b.ToTable("PersonalBadges");
                 });
 
+            modelBuilder.Entity("MH.Capstone.Domain.DataModels.UserBlock", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("BlockedIdentityId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)")
+                        .HasColumnName("BlockedId");
+
+                    b.Property<string>("BlockerIdentityId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)")
+                        .HasColumnName("BlockerId");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BlockedIdentityId");
+
+                    b.HasIndex("BlockerIdentityId", "BlockedIdentityId")
+                        .IsUnique();
+
+                    b.ToTable("UserBlock");
+                });
+
+            modelBuilder.Entity("MH.Capstone.Domain.DataModels.UserFollow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("FolloweeIdentityId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)")
+                        .HasColumnName("FolloweeId");
+
+                    b.Property<string>("FollowerIdentityId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)")
+                        .HasColumnName("FollowerId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FolloweeIdentityId");
+
+                    b.HasIndex("FollowerIdentityId", "FolloweeIdentityId")
+                        .IsUnique();
+
+                    b.ToTable("UserFollow");
+                });
+
             modelBuilder.Entity("MH.Capstone.Domain.DataModels.UserNotificationPreference", b =>
                 {
                     b.Property<Guid>("Id")
@@ -708,6 +850,44 @@ namespace MH.Capstone.Domain.DataAccess.Migrations
                     b.Navigation("Member");
                 });
 
+            modelBuilder.Entity("MH.Capstone.Domain.DataModels.Comment", b =>
+                {
+                    b.HasOne("MH.Capstone.Domain.DataModels.ApplicationUser", "Author")
+                        .WithMany()
+                        .HasForeignKey("AuthorIdentityId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("MH.Capstone.Domain.DataModels.Sighting", "Sighting")
+                        .WithMany()
+                        .HasForeignKey("SightingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Author");
+
+                    b.Navigation("Sighting");
+                });
+
+            modelBuilder.Entity("MH.Capstone.Domain.DataModels.CommentModerationLog", b =>
+                {
+                    b.HasOne("MH.Capstone.Domain.DataModels.Comment", "Comment")
+                        .WithMany()
+                        .HasForeignKey("CommentId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("MH.Capstone.Domain.DataModels.ApplicationUser", "Moderator")
+                        .WithMany()
+                        .HasForeignKey("ModeratorIdentityId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Comment");
+
+                    b.Navigation("Moderator");
+                });
+
             modelBuilder.Entity("MH.Capstone.Domain.DataModels.LiveNotificationPreference", b =>
                 {
                     b.HasOne("MH.Capstone.Domain.DataModels.ApplicationUser", "User")
@@ -788,6 +968,44 @@ namespace MH.Capstone.Domain.DataAccess.Migrations
                     b.Navigation("Badge");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("MH.Capstone.Domain.DataModels.UserBlock", b =>
+                {
+                    b.HasOne("MH.Capstone.Domain.DataModels.ApplicationUser", "Blocked")
+                        .WithMany()
+                        .HasForeignKey("BlockedIdentityId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("MH.Capstone.Domain.DataModels.ApplicationUser", "Blocker")
+                        .WithMany()
+                        .HasForeignKey("BlockerIdentityId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Blocked");
+
+                    b.Navigation("Blocker");
+                });
+
+            modelBuilder.Entity("MH.Capstone.Domain.DataModels.UserFollow", b =>
+                {
+                    b.HasOne("MH.Capstone.Domain.DataModels.ApplicationUser", "Followee")
+                        .WithMany()
+                        .HasForeignKey("FolloweeIdentityId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("MH.Capstone.Domain.DataModels.ApplicationUser", "Follower")
+                        .WithMany()
+                        .HasForeignKey("FollowerIdentityId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Followee");
+
+                    b.Navigation("Follower");
                 });
 
             modelBuilder.Entity("MH.Capstone.Domain.DataModels.UserNotificationPreference", b =>
