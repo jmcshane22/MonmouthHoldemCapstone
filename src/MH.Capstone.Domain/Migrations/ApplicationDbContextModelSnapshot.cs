@@ -33,6 +33,9 @@ namespace MH.Capstone.Domain.DataAccess.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
 
+                    b.Property<bool>("AccountLocked")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Bio")
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
@@ -474,8 +477,8 @@ namespace MH.Capstone.Domain.DataAccess.Migrations
                         .HasColumnType("nvarchar(450)")
                         .HasColumnName("ReportingUserId");
 
-                    b.Property<DateTime>("SubmittedAt")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTimeOffset>("SubmittedAt")
+                        .HasColumnType("datetimeoffset");
 
                     b.HasKey("Id");
 
