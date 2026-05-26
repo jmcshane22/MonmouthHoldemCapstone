@@ -723,7 +723,7 @@ INSERT INTO [dbo].[Sighting]
 VALUES (
     '00600000-0000-0000-0000-000000000003', '2b8804ff-37bd-41e5-868e-034a810f968c', 44.933, -123.035,
     DATEADD(day, -11, GETUTCDATE()),
-    N'Eastern gray squirrel in Bush's Pasture Park, Salem — a non-native species in Oregon.', N'Eastern Gray Squirrel', @eastern_gray_squirrel03,
+    N'Eastern gray squirrel in Bush''s Pasture Park, Salem — a non-native species in Oregon.', N'Eastern Gray Squirrel', @eastern_gray_squirrel03,
     10, 1, N'Common', 1.0,
     2, NULL, NULL, NULL, NULL, 0, NULL
 );
