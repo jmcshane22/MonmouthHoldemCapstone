@@ -127,25 +127,23 @@ dotnet dev-certs https --trust
 
 > Alternatively, change `AcceptanceTesting:BaseUrl` to `http://localhost:5001` in your local override file to avoid TLS entirely. Chrome is configured with `--allow-insecure-localhost` so self-signed certs are silently accepted.
 
-### 4. SQL Server / LocalDB
+### 4. A database (Postgres or SQL Server)
 
-The acceptance tests use a **real database**. SQL Server LocalDB (included with Visual Studio) is the recommended local setup:
-
-```
-Data Source=(localdb)\MSSQLLocalDB
-```
-
-### 5. EF Core Migrations Applied
-
-Before the first run, apply migrations to the acceptance test database:
+The acceptance tests use a **real database**. The provider is picked by `Database:Provider` (`SqlServer` by default, or `Postgres`). The quickest local setup is Postgres in Docker:
 
 ```bash
-# From the repository root
-dotnet ef database update \
-  --project src/MH.Capstone.Domain \
-  --startup-project src/MH.Capstone.WebApp \
-  --connection "Data Source=(localdb)\MSSQLLocalDB;Database=WAID_AcceptanceDb;..."
+docker run -d --name capstone-acc-pg -e POSTGRES_DB=waid_acc -e POSTGRES_USER=waid \
+  -e POSTGRES_PASSWORD=waid -p 127.0.0.1:15432:5432 postgres:17
+
+export Database__Provider=Postgres
+export ConnectionStrings__DataDb='Host=127.0.0.1;Port=15432;Database=waid_acc;Username=waid;Password=waid'
 ```
+
+SQL Server works the same way with `Database__Provider=SqlServer` and a SQL Server connection string (LocalDB, or the `mcr.microsoft.com/mssql/server:2022-latest` image on x64).
+
+### 5. EF Core Migrations
+
+Nothing to do: `TestWebAppHost` applies both contexts' migrations (for the configured provider) before seeding.
 
 ---
 
@@ -193,6 +191,7 @@ Supply secrets as environment variables. The `AddEnvironmentVariables()` call pi
 
 ```yaml
 env:
+  Database__Provider: Postgres
   ConnectionStrings__DataDb: ${{ secrets.ACCEPTANCE_DB_CONNECTION }}
   Api__External__Ninjas__ApiKey: ${{ secrets.NINJA_API_KEY }}
   AcceptanceTesting__BaseUrl: "https://localhost:5001"
@@ -221,7 +220,7 @@ Running acceptance tests against a shared development or production database ris
 |---|---|---|
 | Developer machine | `WAID_AppDataDb` | Day-to-day development |
 | Acceptance tests | `WAID_AcceptanceDb` | Dedicated acceptance test target (separate from dev DB) |
-| CI/CD | Ephemeral or dedicated CI DB | Created fresh per pipeline run if possible |
+| CI/CD | Ephemeral Postgres service container | Created fresh per run in `system_tests.yml` |
 
 Set `ConnectionStrings:DataDb` in `appsettings.Acceptance.Local.json` to point at `WAID_AcceptanceDb`.
 

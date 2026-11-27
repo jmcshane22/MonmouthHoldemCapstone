@@ -33,6 +33,9 @@ namespace MH.Capstone.Domain.DataAccess
         public DbSet<CommentModerationLog> CommentModerationLogs { get; set; } = null!;
         public DbSet<LiveNotificationPreference> LiveNotificationPreferences { get; set; } = null!; // CSP-180
 
+        protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+            => configurationBuilder.UseUtcDateTimeOffsetsOnPostgres(this);
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -42,7 +45,7 @@ namespace MH.Capstone.Domain.DataAccess
             modelBuilder.Entity<Report>()
                 .HasIndex(r => new { r.ReportingUserIdentityId, r.ReportedPageUrl })
                 .IsUnique()
-                .HasFilter("[IsResolved] = 0");
+                .HasFilter(Database.IsNpgsql() ? "\"IsResolved\" = false" : "[IsResolved] = 0");
             
             // Configure EmailQueue table defaults and indexes
             modelBuilder.Entity<EmailQueue>()
@@ -77,7 +80,7 @@ namespace MH.Capstone.Domain.DataAccess
             modelBuilder.Entity<Sighting>()
                 .HasIndex(s => new { s.UserIdentityId, s.ClientSightingId })
                 .IsUnique()
-                .HasFilter("[ClientSightingId] IS NOT NULL");
+                .HasFilter(Database.IsNpgsql() ? "\"ClientSightingId\" IS NOT NULL" : "[ClientSightingId] IS NOT NULL");
 
             // CSP-187: a user can only follow another user once.
             modelBuilder.Entity<UserFollow>()

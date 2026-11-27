@@ -8,14 +8,9 @@ on:
 # Only one system-test run may execute at a time — tests share a single Azure SQL database
 # and concurrent runs cause data-race failures. cancel-in-progress: false means a second
 # run waits in the queue rather than being killed.
-concurrency:
-  group: system-tests-db-lock
-  cancel-in-progress: false
-
 permissions:
   contents: read
   actions: read
-  id-token: write  # Required for Azure OIDC login
 
 jobs:
   build:
@@ -28,14 +23,27 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       actions: read    # Required to download artifact from the source run
-      id-token: write  # Required for Azure OIDC login
       contents: read
+    # Throwaway Postgres per run: the acceptance host migrates and seeds it itself.
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: waid_systest
+          POSTGRES_USER: waid
+          POSTGRES_PASSWORD: waid
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U waid -d waid_systest"
+          --health-interval 5s --health-timeout 5s --health-retries 10
     environment: system_testing
     env:
       # For color output from the dotnet commands. ENVs are scoped to all steps in the job
       DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION: true
       TERM: xterm-256color
       ASPNETCORE_ENVIRONMENT: Acceptance
+      Database__Provider: Postgres
 
     steps:
       - name: Download artifact from build job
@@ -47,13 +55,6 @@ jobs:
           github-token: ${{ github.token }}
           path: ./src
 
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.SYSTEST_AZUREAPPSERVICE_CLIENTID }}
-          tenant-id: ${{ secrets.SYSTEST_AZUREAPPSERVICE_TENANTID }}
-          subscription-id: ${{ secrets.SYSTEST_AZUREAPPSERVICE_SUBSCRIPTIONID }}
-
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
         with:
@@ -62,16 +63,9 @@ jobs:
       - name: Give execution permissions to entire project build directory
         run: chmod -R +x ./src
 
-      - name: Ensure test database is migrated and ok
-        run: |
-          ./src/${{ vars.DOTNET_EF_BUNDLE_DIR }}/${{ vars.DOTNET_EF_BUNDLE_NAME_APPDBCTX }} \
-            --connection '${{ secrets.SYSTEST_AZUREAPPSERVICE_DBCONNSTR }}' --verbose &&
-          ./src/${{ vars.DOTNET_EF_BUNDLE_DIR }}/${{ vars.DOTNET_EF_BUNDLE_NAME_CACHEDBCTX  }} \
-            --connection '${{ secrets.SYSTEST_AZUREAPPSERVICE_DBCONNSTR }}' --verbose
-      
       - name: Run Integration & Acceptance (BDD/Gherkin/Reqnroll) Tests
         env:
-          ConnectionStrings__DataDb: ${{ secrets.SYSTEST_AZUREAPPSERVICE_DBCONNSTR }}
+          ConnectionStrings__DataDb: Host=localhost;Port=5432;Database=waid_systest;Username=waid;Password=waid
           ConnectionStrings__AzureCommunicationServices: ${{ secrets.SYSTEST_AZURECOMMSERVICE_CONNSTR }}
           Api__External__Ninjas__ApiKey: ${{ secrets.SYSTEST_NINJASAPI_APIKEY }}
           Gemini__ApiKey: ${{ secrets.GEMINI_APIKEY }}

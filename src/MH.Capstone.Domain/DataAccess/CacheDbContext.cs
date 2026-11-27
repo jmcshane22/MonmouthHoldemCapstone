@@ -11,6 +11,9 @@ namespace MH.Capstone.Domain.DataAccess
 
         public DbSet<NinjaAnimalCacheEntity> AnimalApiCache { get; set; } = null!;
 
+        protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+            => configurationBuilder.UseUtcDateTimeOffsetsOnPostgres(this);
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

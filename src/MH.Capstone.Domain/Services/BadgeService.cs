@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using System.Runtime.CompilerServices;
-using MH.Capstone.Domain.Migrations;
 using System.Reflection.Metadata;
 
 namespace MH.Capstone.Domain.Services

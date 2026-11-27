@@ -312,22 +312,14 @@ public class CSP97StepDefinitions
 
     private IServiceScope GetServiceScope()
     {
-        var webAppPath  = _settings.WebAppContentRoot;
-
-        var configuration = new ConfigurationBuilder()
-            .SetBasePath(webAppPath)
-            .AddJsonFile("appsettings.json", optional: true)
-            .AddJsonFile("appsettings.Acceptance.json", optional: true)
-            .AddJsonFile("appsettings.Acceptance.Local.json", optional: true)
-            .AddEnvironmentVariables()
-            .Build();
+        var configuration = AcceptanceTestConfiguration.LoadConfiguration();
 
         var connectionString = configuration.GetConnectionString("DataDb")
             ?? throw new InvalidOperationException("Connection string 'DataDb' not found.");
 
         var services = new ServiceCollection();
-        services.AddDbContext<ApplicationDbContext>(o => o.UseSqlServer(connectionString));
-        services.AddDbContext<CacheDbContext>(o => o.UseSqlServer(connectionString));
+        services.AddDbContext<ApplicationDbContext>(o => o.UseConfiguredDatabase(configuration, connectionString, "__EFMigrationsHistory_ApplicationDbContext"));
+        services.AddDbContext<CacheDbContext>(o => o.UseConfiguredDatabase(configuration, connectionString, "__EFMigrationsHistory_CacheDbContext"));
         services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
                 options.Password.RequireDigit = false;

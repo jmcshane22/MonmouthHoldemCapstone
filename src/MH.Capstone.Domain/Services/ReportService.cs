@@ -3,7 +3,6 @@ using MH.Capstone.Domain.DataAccess.Repositories;
 using MH.Capstone.Domain.DataModels;
 using MH.Capstone.Domain.Services.Abstraction;
 using MH.Capstone.Domain.Tools;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic;
 using Microsoft.AspNetCore.Identity;
@@ -49,8 +48,7 @@ namespace MH.Capstone.Domain.Services
             catch (Exception ex)
             {
                 // Check if this is a unique constraint violation (duplicate unresolved report)
-                if ((ex is SqlException sqlEx && sqlEx.IsOfErrorType(SqlErrorNumber.UniqueConstraintViolation)) ||
-                    (ex is DbUpdateException dbEx && dbEx.IsOfErrorType(SqlErrorNumber.UniqueConstraintViolation)))
+                if (ex.IsDbError(SqlErrorNumber.UniqueConstraintViolation))
                 {
                     // if dupe report dectected
                     return false;
@@ -84,7 +82,9 @@ namespace MH.Capstone.Domain.Services
             // Apply ReportFilterType (Only if arguments are provided)
             if (!string.IsNullOrWhiteSpace(pageURL))
             {
-                query = query.Where(r => r.ReportedPageUrl.Contains(pageURL));
+                // ToLower keeps the match case-insensitive on Postgres too (SQL Server collation already is).
+                var pageUrlLower = pageURL.ToLower();
+                query = query.Where(r => r.ReportedPageUrl.ToLower().Contains(pageUrlLower));
             }
 
             if (!string.IsNullOrWhiteSpace(reportingUserId))

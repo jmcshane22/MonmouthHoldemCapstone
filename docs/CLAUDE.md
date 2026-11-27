@@ -31,11 +31,11 @@ Structured overview of the **Competitive Wildlife Scavenger App (CWSA)** capston
 |---|---|
 | Runtime | .NET 9 (SDK 9.0.309) |
 | Web Framework | ASP.NET Core MVC |
-| ORM | EF Core 9 + SQL Server (lazy loading proxies on `ApplicationDbContext`) |
+| ORM | EF Core 9, provider chosen by `Database:Provider` (`SqlServer` or `Postgres`); lazy loading proxies on `ApplicationDbContext` |
 | Frontend | Bootstrap 5.3, Leaflet.js (OpenStreetMap) |
 | Email | Azure Communication Services; `NoOpEmailService` in dev/staging |
 | External API | API-Ninjas Animals API — `ExternalApiCaller` with SQL-backed cache |
-| Cloud | Azure App Service + Azure SQL |
+| Hosting | Azure App Service + Azure SQL (current); self-hosted Docker Compose + Postgres 17 on a Raspberry Pi 5 (target, see `docs/self_hosting.md`) |
 | BDD | Reqnroll + Selenium ChromeDriver |
 | Integration Tests | `Microsoft.AspNetCore.Mvc.Testing` + EF Core In-Memory |
 
@@ -43,11 +43,18 @@ Structured overview of the **Competitive Wildlife Scavenger App (CWSA)** capston
 
 ## Architecture
 
-**Layering:** `Controller → Service Interface → Service → IRepository<T,TContext> → EF Core → SQL Server`
+**Layering:** `Controller → Service Interface → Service → IRepository<T,TContext> → EF Core → SQL Server | Postgres`
 
 Two EF Core DbContexts, **same connection string** (`DataDb`), separate migrations history tables:
 - **`ApplicationDbContext`** (`__EFMigrationsHistory_ApplicationDbContext`) — all app data + Identity. Seeded via `ApplicationDbContextSeeding`.
 - **`CacheDbContext`** — `ApiCallerCacheEntity`, `NinjaAnimalCacheEntity`.
+
+**Database provider is config, not code.** `UseConfiguredDatabase(...)` (`src/MH.Capstone.Domain/DataAccess/DatabaseProviderExtensions.cs`) picks `UseSqlServer`/`UseNpgsql` from `Database:Provider` (default `SqlServer`). Each provider has its own migrations project generated from the same model: `src/MH.Capstone.Migrations.SqlServer/` and `src/MH.Capstone.Migrations.Postgres/`.
+- **Model changes:** always run `src/tools/add-migration.sh <Name> <ApplicationDbContext|CacheDbContext>` so both providers get a migration. CI (`ef_core_tests.yml`) fails if either set is missing one.
+- **Provider-specific model code** checks `Database.IsNpgsql()` (e.g. filtered index SQL). Postgres stores `DateTimeOffset` as UTC (converter in `UseUtcDateTimeOffsetsOnPostgres`); SQL Server keeps the offset.
+- **DB error checks** go through `ex.IsDbError(SqlErrorNumber.X)` (`Tools/Extensions.cs`), which understands both `SqlException` and `PostgresException`. Do not match `SqlException` directly.
+- **String comparisons:** Postgres is case-sensitive; use `ToLower()` on both sides in LINQ where case-insensitive matching is intended.
+- `Database:MigrateOnStartup=true` makes `Program.Main` apply migrations at startup (used by Docker Compose).
 
 ---
 
@@ -299,7 +306,10 @@ gh run list --repo jmcshane22/MonmouthHoldemCapstone \
 |---|---|
 | DI registration / app bootstrap | `src/MH.Capstone.WebApp/Program.cs` |
 | EF seeding | `src/MH.Capstone.Domain/DataAccess/ApplicationDbContextSeeding.cs` |
-| EF migrations (app) | `src/MH.Capstone.Domain/Migrations/` |
+| EF migrations | `src/MH.Capstone.Migrations.SqlServer/Migrations/`, `src/MH.Capstone.Migrations.Postgres/Migrations/` (`Cache/` subfolder for `CacheDbContext`) |
+| Provider selection | `src/MH.Capstone.Domain/DataAccess/DatabaseProviderExtensions.cs` |
+| Add a migration (both providers) | `src/tools/add-migration.sh` |
+| Self-hosting (Docker) | `docker-compose.yml`, `src/MH.Capstone.WebApp/Dockerfile`, `docs/self_hosting.md` |
 | Badge GUIDs / constants | `src/MH.Capstone.Domain/Constants/BadgeId.cs` |
 | Feature flags | `src/MH.Capstone.Domain/Tools/FeatureFlags.cs` |
 | Acceptance test features | `src/MH.Capstone.Tests.Acceptance/Features/` |
@@ -315,7 +325,7 @@ gh run list --repo jmcshane22/MonmouthHoldemCapstone \
 - `ApplicationUser.DisplayName`: `nvarchar(50)`, required, defaults to `"UNSET"`; 2–50 chars enforced in service.
 - `Sighting.Timestamp` must be past (`[PastDateTime]`). `ImageBuffer` required (1 byte – 2 MB). `SpeciesName` nvarchar(100), required; default `"Unknown"` for migrated rows.
 - `Report`: unique filtered index on `(ReportingUserId, ReportedPageUrl)` where `IsResolved = 0`.
-- `FixSightingUserIdType` migration uses idempotent raw SQL instead of generated `AlterColumn` — do not regenerate it without restoring the raw SQL (`IF EXISTS` guard on index drop).
+- (SQL Server migrations) `FixSightingUserIdType` migration uses idempotent raw SQL instead of generated `AlterColumn` — do not regenerate it without restoring the raw SQL (`IF EXISTS` guard on index drop).
 
 **Seeded roles:** `User`, `Admin`. **FK seeding order:** `AspNetRoles` → `AspNetUsers` → `Badge` → `Sighting`/`PersonalBadges`/`Notification`/`Report` → `EmailQueue`.
 
