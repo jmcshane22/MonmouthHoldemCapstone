@@ -23,6 +23,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MH.Capstone.Domain\MH.Capstone.Domain.csproj" />
+    <ProjectReference Include="..\MH.Capstone.Migrations.SqlServer\MH.Capstone.Migrations.SqlServer.csproj" />
+    <ProjectReference Include="..\MH.Capstone.Migrations.Postgres\MH.Capstone.Migrations.Postgres.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,3 +1,4 @@
+using Npgsql;
 ﻿using MH.Capstone.Domain.DataAccess.Repositories;
 using MH.Capstone.Domain.DataModels;
 using MH.Capstone.Domain.Services;
@@ -266,6 +267,32 @@ public class SightingsServiceTests
         _sightingsRepoMock.Setup(r => r.AddOrUpdateAsync(It.IsAny<Sighting>()))
             .ThrowsAsync(new DbUpdateException("Foreign key violation", 
             new SqlExceptionBuilder().WithNumber(547).Build()))
+            .Verifiable();
+
+        var sut = CreateSut();
+
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => sut.CreateSightingAsync(sighting));
+        AssertAllMockVerifications();
+    }
+
+    [Test]
+    public void CreateSightingAsync_UserDoesNotExistOnPostgres_ReturnsFailedTaskThrowingArgumentException()
+    {
+        // Arrange
+        var sighting = _validSighting;
+        _validSighting.UserId = Guid.AllBitsSet;
+
+        // User cannot be null, to hit try block where exception is
+        var user = new ApplicationUser { Id = sighting.UserIdentityId };
+
+        // User exists in memory but database throws FK constraint on save
+        _userRepoMock.Setup(r => r.GetAllAsync())
+            .ReturnsAsync(new List<ApplicationUser> { user }.AsQueryable());
+
+        _sightingsRepoMock.Setup(r => r.AddOrUpdateAsync(It.IsAny<Sighting>()))
+            .ThrowsAsync(new DbUpdateException("Foreign key violation", 
+            new PostgresException("fk violation", "ERROR", "ERROR", PostgresErrorCodes.ForeignKeyViolation)))
             .Verifiable();
 
         var sut = CreateSut();

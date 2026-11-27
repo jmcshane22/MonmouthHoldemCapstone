@@ -59,7 +59,6 @@ namespace MH.Capstone.Domain.DataModels
             var prop = builder.Property(p => p.CachedResponses)
                 .HasConversion(converter)
                 .HasColumnName("CachedResponse")
-                .HasColumnType("nvarchar(max)")
                 .IsRequired();
 
             // Attach the comparer to the property metadata so EF can detect changes correctly

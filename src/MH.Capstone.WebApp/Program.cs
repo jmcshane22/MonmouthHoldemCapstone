@@ -26,6 +26,15 @@ namespace MH.Capstone.WebApp
         {
             var builder = WebApplication.CreateBuilder(args);
             var app = Configure(builder);
+
+            // Self-hosted (Docker) deployments apply migrations at startup instead of running EF bundles.
+            if (app.Configuration.GetValue<bool>("Database:MigrateOnStartup"))
+            {
+                using var scope = app.Services.CreateScope();
+                scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database.Migrate();
+                scope.ServiceProvider.GetRequiredService<CacheDbContext>().Database.Migrate();
+            }
+
             app.Run();
         }
 
@@ -53,10 +62,7 @@ namespace MH.Capstone.WebApp
             // Add EF Core DbContexts
             builder.Services.AddDbContext<ApplicationDbContext>(opt => opt
                 .UseLazyLoadingProxies()
-                .UseSqlServer(appConnStr, sqlOptions =>
-                    // Handle transient Azure SQL failures
-                    sqlOptions.EnableRetryOnFailure()
-                        .MigrationsHistoryTable("__EFMigrationsHistory_ApplicationDbContext"))
+                .UseConfiguredDatabase(builder.Configuration, appConnStr, "__EFMigrationsHistory_ApplicationDbContext")
                     // Must implement the synchronous SeedData method for EF Core Tooling.
                     .UseSeeding((context, _) => {
                         if (context is ApplicationDbContext appSyncContext)
@@ -76,10 +82,7 @@ namespace MH.Capstone.WebApp
             // Register second DbContext for caching (uses same connection string/options as ApplicationDbContext, no seeding)
             builder.Services.AddDbContext<CacheDbContext>(opt => opt
                 .UseLazyLoadingProxies()
-                .UseSqlServer(appConnStr, sqlOptions => 
-                    // Handle transient Azure SQL failures
-                    sqlOptions.EnableRetryOnFailure()
-                        .MigrationsHistoryTable("__EFMigrationsHistory_CacheDbContext"))
+                .UseConfiguredDatabase(builder.Configuration, appConnStr, "__EFMigrationsHistory_CacheDbContext")
             );
 
             // Configure Identity for authentication

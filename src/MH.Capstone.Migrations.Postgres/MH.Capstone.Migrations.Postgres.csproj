@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- EF Core migrations for the Postgres provider. Generated from the shared model in
+       MH.Capstone.Domain; add new ones with src/tools/add-migration.sh. -->
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MH.Capstone.Domain\MH.Capstone.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

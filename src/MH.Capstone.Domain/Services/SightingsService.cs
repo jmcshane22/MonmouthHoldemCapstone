@@ -5,7 +5,6 @@ using MH.Capstone.Domain.DataModels;
 using MH.Capstone.Domain.Services.Abstraction;
 using MH.Capstone.Domain.Tools;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -169,9 +168,9 @@ namespace MH.Capstone.Domain.Services
                 // Return points to controller
                 return pointsEarned;
             }
-            catch (DbUpdateException ex) when (ex.InnerException is SqlException { Number: 547 })
+            catch (DbUpdateException ex) when (ex.IsDbError(SqlErrorNumber.ForeignKeyConstraintViolation))
             {
-                // This is a SQL foreign key violation, which means the UserId provided does not exist in the Users table.
+                // This is a foreign key violation, which means the UserId provided does not exist in the Users table.
                 throw new ArgumentException(
                     $"Sighting entity validation failed. UserId {entity.UserId} does not exist.", nameof(entity.UserId),
                     ex);

@@ -1,3 +1,4 @@
+using Npgsql;
 using MH.Capstone.Domain.DataAccess;
 using MH.Capstone.Domain.DataAccess.Repositories;
 using MH.Capstone.Domain.DataModels;
@@ -98,6 +99,72 @@ public class ReportServiceTests
         var uniqueConstraintException = new SqlExceptionBuilder()
             .WithNumber((int)SqlErrorNumber.UniqueConstraintViolation)
             .Build();
+        var dbUpdateException = new DbUpdateException("Duplicate key", uniqueConstraintException);
+
+        _reportRepoMock.Setup(r => r.AddOrUpdateAsync(It.IsAny<Report>()))
+            .ThrowsAsync(dbUpdateException)
+            .Verifiable(Times.Once);
+
+        var sut = CreateSut();
+
+        // Act
+        var result = await sut.SubmitReportAsync(duplicateReport);
+
+        // Assert
+        Assert.That(result, Is.False);
+        AssertAllMockVerifications(); 
+    }
+
+    [Test]
+    public async Task SubmitReportAsync_DuplicateReportUniqueIndex_ReturnsFalseAndDoesNotSave()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var pageUrl = "/Sighting/123";
+
+        var duplicateReport = new Report
+        {
+            ReportingUserId = userId,
+            ReportedPageUrl = pageUrl,
+            Reason = "Inappropriate content"
+        };
+
+        // Database will throw unique constraint violation on duplicate
+        var uniqueConstraintException = new SqlExceptionBuilder()
+            .WithNumber(2601) // SQL Server reports unique *index* violations as 2601
+            .Build();
+        var dbUpdateException = new DbUpdateException("Duplicate key", uniqueConstraintException);
+
+        _reportRepoMock.Setup(r => r.AddOrUpdateAsync(It.IsAny<Report>()))
+            .ThrowsAsync(dbUpdateException)
+            .Verifiable(Times.Once);
+
+        var sut = CreateSut();
+
+        // Act
+        var result = await sut.SubmitReportAsync(duplicateReport);
+
+        // Assert
+        Assert.That(result, Is.False);
+        AssertAllMockVerifications(); 
+    }
+
+    [Test]
+    public async Task SubmitReportAsync_DuplicateReportOnPostgres_ReturnsFalseAndDoesNotSave()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var pageUrl = "/Sighting/123";
+
+        var duplicateReport = new Report
+        {
+            ReportingUserId = userId,
+            ReportedPageUrl = pageUrl,
+            Reason = "Inappropriate content"
+        };
+
+        // Database will throw unique constraint violation on duplicate
+        var uniqueConstraintException = new PostgresException("duplicate key", "ERROR", "ERROR", PostgresErrorCodes.UniqueViolation);
         var dbUpdateException = new DbUpdateException("Duplicate key", uniqueConstraintException);
 
         _reportRepoMock.Setup(r => r.AddOrUpdateAsync(It.IsAny<Report>()))

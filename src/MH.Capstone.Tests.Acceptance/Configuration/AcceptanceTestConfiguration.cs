@@ -19,17 +19,19 @@ namespace MH.Capstone.Tests.Acceptance.Configuration;
 [ExcludeFromCodeCoverage]
 internal static class AcceptanceTestConfiguration
 {
+    // The same config hierarchy the in-process WebApp host reads.
+    public static IConfiguration LoadConfiguration() => new ConfigurationBuilder()
+        .SetBasePath(FindWebAppContentRoot())
+        .AddJsonFile("appsettings.json", optional: false)
+        .AddJsonFile("appsettings.Acceptance.json", optional: true)
+        .AddJsonFile("appsettings.Acceptance.Local.json", optional: true)
+        .AddEnvironmentVariables()
+        .Build();
+
     public static AcceptanceTestSettings Load()
     {
         var webAppRoot = FindWebAppContentRoot();
-
-        var config = new ConfigurationBuilder()
-            .SetBasePath(webAppRoot)
-            .AddJsonFile("appsettings.json", optional: false)
-            .AddJsonFile("appsettings.Acceptance.json", optional: true)
-            .AddJsonFile("appsettings.Acceptance.Local.json", optional: true)
-            .AddEnvironmentVariables()
-            .Build();
+        var config = LoadConfiguration();
 
         return new AcceptanceTestSettings
         {

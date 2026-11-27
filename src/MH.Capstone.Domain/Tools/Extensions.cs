@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace MH.Capstone.Domain.Tools
 {
@@ -21,14 +22,29 @@ namespace MH.Capstone.Domain.Tools
             return memoryStream.ToArray();
         }
 
-        internal static bool IsOfErrorType(this DbUpdateException ex, SqlErrorNumber errNum)
-            => ex.InnerException is SqlException sqlEx && sqlEx.IsOfErrorType(errNum);
+        // Provider-neutral check for a database error, raw or wrapped in a DbUpdateException.
+        // SQL Server is matched by error number, Postgres by SQLSTATE.
+        internal static bool IsDbError(this Exception ex, SqlErrorNumber errNum)
+        {
+            var inner = ex is DbUpdateException { InnerException: { } i } ? i : ex;
+            return inner switch
+            {
+                SqlException sqlEx => sqlEx.Errors.Cast<SqlError>().Any(e => e.Number == (int)errNum
+                    // EF creates unique *indexes*, which SQL Server reports as 2601 rather than 2627.
+                    || (errNum == SqlErrorNumber.UniqueConstraintViolation && e.Number == 2601)),
+                PostgresException pgEx => pgEx.SqlState == ToPostgresSqlState(errNum),
+                _ => false
+            };
+        }
 
-        internal static bool IsOfErrorType(this SqlException ex, SqlErrorNumber errNum) 
-            => ex.Errors.Cast<SqlError>().Any(e => e.IsOfErrorType(errNum));
-
-        internal static bool IsOfErrorType(this SqlError err, SqlErrorNumber errNum)
-            => err.Number == (int)errNum;
+        // Unique/PK and FK/Check share SQL Server numbers, so each pair maps to one SQLSTATE.
+        private static string? ToPostgresSqlState(SqlErrorNumber errNum) => errNum switch
+        {
+            SqlErrorNumber.UniqueConstraintViolation => PostgresErrorCodes.UniqueViolation,
+            SqlErrorNumber.ForeignKeyConstraintViolation => PostgresErrorCodes.ForeignKeyViolation,
+            SqlErrorNumber.DeadlockVictim => PostgresErrorCodes.DeadlockDetected,
+            _ => null
+        };
     }
 
     public static class HttpHelperMethods

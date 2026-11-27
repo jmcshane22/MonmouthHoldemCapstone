@@ -80,17 +80,21 @@ jobs:
 
       - name: Create EF Core bundle - ApplicationDbContext
         if: steps.check_artifact.outputs.skip_build != 'true'
+        env:
+          Database__Provider: ${{ vars.DB_PROVIDER || 'SqlServer' }}
         run: |
           dotnet ef migrations bundle --self-contained --configuration Release --no-build \
           -o "./src/${{ vars.DOTNET_EF_BUNDLE_DIR }}/${{ vars.DOTNET_EF_BUNDLE_NAME_APPDBCTX }}" \
-          -p ./src/MH.Capstone.Domain -s ./src/MH.Capstone.WebApp -c ApplicationDbContext
+          -p ./src/MH.Capstone.Migrations.${{ vars.DB_PROVIDER || 'SqlServer' }} -s ./src/MH.Capstone.WebApp -c ApplicationDbContext
 
       - name: Create EF Core bundle - CacheDbContext
         if: steps.check_artifact.outputs.skip_build != 'true'
+        env:
+          Database__Provider: ${{ vars.DB_PROVIDER || 'SqlServer' }}
         run: |
           dotnet ef migrations bundle --self-contained --configuration Release \
           --no-build -o "./src/${{ vars.DOTNET_EF_BUNDLE_DIR }}/${{ vars.DOTNET_EF_BUNDLE_NAME_CACHEDBCTX }}" \
-          -p ./src/MH.Capstone.Domain -s ./src/MH.Capstone.WebApp -c CacheDbContext
+          -p ./src/MH.Capstone.Migrations.${{ vars.DB_PROVIDER || 'SqlServer' }} -s ./src/MH.Capstone.WebApp -c CacheDbContext
       
       - name: Upload build artifact (binaries) for other jobs
         id: artifact_upload

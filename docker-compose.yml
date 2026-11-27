@@ -1,0 +1,42 @@
+# Self-hosted stack: Postgres + the WebApp in separate containers (e.g. on a Raspberry Pi 5).
+# Put secrets in a .env file next to this one (gitignored); see docs/self_hosting.md.
+services:
+  db:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: waid
+      POSTGRES_USER: waid
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U waid -d waid"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: ./src
+      dockerfile: MH.Capstone.WebApp/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      Database__Provider: Postgres
+      Database__MigrateOnStartup: "true"
+      ConnectionStrings__DataDb: "Host=db;Database=waid;Username=waid;Password=${POSTGRES_PASSWORD}"
+      ConnectionStrings__AzureCommunicationServices: ${AZURE_COMMS_CONNSTR:-Placeholder4GitHub}
+      Api__External__Ninjas__ApiKey: ${NINJAS_API_KEY:-Placeholder4GitHub}
+      Gemini__ApiKey: ${GEMINI_API_KEY:-YOUR_KEY_HERE}
+    volumes:
+      - dpkeys:/home/app/.aspnet/DataProtection-Keys
+    ports:
+      - "${APP_PORT:-8080}:8080"
+
+volumes:
+  pgdata:
+  dpkeys:

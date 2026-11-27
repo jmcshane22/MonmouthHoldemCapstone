@@ -1,3 +1,4 @@
+using Npgsql;
 ﻿using MH.Capstone.Domain.DataAccess;
 using MH.Capstone.Domain.DataAccess.Repositories;
 using MH.Capstone.Domain.DataModels;
@@ -227,6 +228,32 @@ namespace MH.Capstone.Domain.Tests.Unit.Services.Notifications
                         ))
                 .ThrowsAsync(new SqlExceptionBuilder().WithNumber(
                         (int)SqlErrorNumber.ForeignKeyConstraintViolation).Build())
+                .Verifiable(Times.Once);
+
+            // Act
+            var sut = CreateSut();
+
+            // Assert
+            Assert.ThrowsAsync<ArgumentException>(() => sut.GetPendingNotificationsAsync(user));
+            AssertAllMockVerifications();
+        }
+
+        [Test]
+        public void GetPendingNotificationsAsyncUserModel_UserNotFoundOnPostgres_ReturnsFailedTaskThrowingArgumentException()
+        {
+            // Arrange
+            var user = new ApplicationUser
+            {
+                GuidId = Guid.NewGuid()
+            };
+            var testExpression = CreatePendingNotificationTestExpression(user.GuidId);
+
+            _mockNotificationRepository.Setup(r =>
+                    r.GetAllAsync(
+                        It.Is<Expression<Func<Notification, bool>>>(
+                            e => Lambda.ExpressionsEqual(e, testExpression))
+                        ))
+                .ThrowsAsync(new PostgresException("fk violation", "ERROR", "ERROR", PostgresErrorCodes.ForeignKeyViolation))
                 .Verifiable(Times.Once);
 
             // Act

@@ -3,7 +3,6 @@ using MH.Capstone.Domain.DataAccess.Repositories;
 using MH.Capstone.Domain.DataModels;
 using MH.Capstone.Domain.Services.Abstraction;
 using MH.Capstone.Domain.Tools;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
@@ -101,8 +100,7 @@ namespace MH.Capstone.Domain.Services.Notifications
                 // Have to do the exception type checks this way because the underlying code is the same, but you cannot catch 
                 // both types in the same catch block. Using an if statement on the base exception type allows us to check for
                 // both without code duplication (DRY).
-                if ((ex is SqlException sqlEx && sqlEx.IsOfErrorType(SqlErrorNumber.ForeignKeyConstraintViolation)) ||
-                    (ex is DbUpdateException dbEx && dbEx.IsOfErrorType(SqlErrorNumber.ForeignKeyConstraintViolation)))
+                if (ex.IsDbError(SqlErrorNumber.ForeignKeyConstraintViolation))
                 {
                     throw new ArgumentException($"The {paramName ?? "UNK PARAM"} does not correspond " +
                                                 $"to an existing record in the database.", paramName, ex);

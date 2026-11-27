@@ -5,7 +5,6 @@ using MH.Capstone.Domain.DataModels;
 using MH.Capstone.Tests.Acceptance.Configuration;
 using MH.Capstone.Tests.Acceptance.Drivers;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -334,23 +333,13 @@ public class CSP120StepDefinitions
     private static IServiceScope GetServiceScope()
     {
         var connectionString = _connectionString.Value!;
-
-        var builder = new SqlConnectionStringBuilder(connectionString) { ConnectTimeout = 120 };
-        connectionString = builder.ConnectionString;
+        var configuration = AcceptanceTestConfiguration.LoadConfiguration();
 
         var services = new ServiceCollection();
         services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(connectionString, sql =>
-            {
-                sql.CommandTimeout(120);
-                sql.EnableRetryOnFailure(5, TimeSpan.FromSeconds(15), null);
-            }));
+            options.UseConfiguredDatabase(configuration, connectionString, "__EFMigrationsHistory_ApplicationDbContext", commandTimeoutSeconds: 120));
         services.AddDbContext<CacheDbContext>(options =>
-            options.UseSqlServer(connectionString, sql =>
-            {
-                sql.CommandTimeout(120);
-                sql.EnableRetryOnFailure(5, TimeSpan.FromSeconds(15), null);
-            }));
+            options.UseConfiguredDatabase(configuration, connectionString, "__EFMigrationsHistory_CacheDbContext", commandTimeoutSeconds: 120));
         services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
                 options.Password.RequireDigit = false;
