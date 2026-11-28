@@ -177,7 +177,28 @@ namespace MH.Capstone.WebApp
             var emailSender = builder.Configuration.GetValue<string>("Email:SenderAddress");
             var useRealEmailer = featureFlags.IsEnabled("UseRealEmailerService");
 
-            if (useRealEmailer && !EF.IsDesignTime)
+            // Email:Provider picks the real sender: "Azure" (default) or "Smtp" (e.g. Amazon SES SMTP).
+            var emailProvider = builder.Configuration.GetValue<string>("Email:Provider") ?? "Azure";
+
+            if (useRealEmailer && !EF.IsDesignTime && emailProvider.Equals("Smtp", StringComparison.OrdinalIgnoreCase))
+            {
+                var smtp = builder.Configuration.GetSection("Email:Smtp");
+                var smtpHost = smtp["Host"];
+                var smtpUser = smtp["Username"];
+                var smtpPassword = smtp["Password"];
+                var smtpPort = smtp.GetValue("Port", 587);
+
+                if (string.IsNullOrWhiteSpace(smtpHost) || string.IsNullOrWhiteSpace(smtpUser) || string.IsNullOrWhiteSpace(smtpPassword) || string.IsNullOrWhiteSpace(emailSender))
+                {
+                    throw new InvalidOperationException("UseRealEmailerService is enabled with Email:Provider=Smtp but SMTP is not configured. Please set Email:Smtp:Host, Email:Smtp:Username, Email:Smtp:Password and Email:SenderAddress.");
+                }
+
+                builder.Services.AddSingleton<IEmailService>(sp =>
+                    new SmtpEmailService(smtpHost, smtpPort, smtpUser, smtpPassword, emailSender, sp.GetRequiredService<ILogger<SmtpEmailService>>()));
+
+                entryLogger.LogInformation("SmtpEmailService registered for {Host}:{Port} (feature flag enabled).", smtpHost, smtpPort);
+            }
+            else if (useRealEmailer && !EF.IsDesignTime)
             {
                 if (string.IsNullOrWhiteSpace(emailConnectionString) || string.IsNullOrWhiteSpace(emailSender))
                 {

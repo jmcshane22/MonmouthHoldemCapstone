@@ -41,8 +41,15 @@ services:
       ConnectionStrings__DataDb: "Host=db;Database=waid;Username=waid;Password=${POSTGRES_PASSWORD}"
       AdminAccount__Hidden__Email: ${ADMIN_EMAIL:-}
       AdminAccount__Hidden__Password: ${ADMIN_PASSWORD:-}
-      ConnectionStrings__AzureCommunicationServices: ${AZURE_COMMS_CONNSTR:-Placeholder4GitHub}
+      # Email: Amazon SES over SMTP (Email__Provider=Azure + AZURE_COMMS_CONNSTR also still works)
       FeatureFlags__UseRealEmailerService: ${USE_REAL_EMAILER:-false}
+      Email__Provider: ${EMAIL_PROVIDER:-Smtp}
+      Email__SenderAddress: ${EMAIL_SENDER:-noreply@jddevs.net}
+      Email__Smtp__Host: ${SMTP_HOST:-email-smtp.us-east-2.amazonaws.com}
+      Email__Smtp__Port: ${SMTP_PORT:-587}
+      Email__Smtp__Username: ${SMTP_USERNAME:-}
+      Email__Smtp__Password: ${SMTP_PASSWORD:-}
+      ConnectionStrings__AzureCommunicationServices: ${AZURE_COMMS_CONNSTR:-Placeholder4GitHub}
       Api__External__Ninjas__ApiKey: ${NINJAS_API_KEY:-Placeholder4GitHub}
       FeatureFlags__EnableGeminiAIService: ${ENABLE_GEMINI:-false}
       Gemini__ApiKey: ${GEMINI_API_KEY:-YOUR_KEY_HERE}

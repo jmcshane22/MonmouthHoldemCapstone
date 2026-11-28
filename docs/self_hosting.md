@@ -114,8 +114,11 @@ ADMIN_PASSWORD=<a strong password: upper, lower, digit, symbol, 6+ chars>
 NINJAS_API_KEY=
 ENABLE_GEMINI=false
 GEMINI_API_KEY=
+# Email via Amazon SES SMTP (see "Email (Amazon SES)" below)
 USE_REAL_EMAILER=false
-AZURE_COMMS_CONNSTR=
+EMAIL_SENDER=noreply@jddevs.net
+SMTP_USERNAME=
+SMTP_PASSWORD=
 EOF
 chmod 600 .env
 nano .env   # fill in the admin email/password and any keys
@@ -124,7 +127,7 @@ nano .env   # fill in the admin email/password and any keys
 Notes:
 - **`POSTGRES_PASSWORD` is only applied when the database volume is first created.** Changing it in `.env` later does not change the database's password; see [Troubleshooting](#troubleshooting).
 - Keep a copy of `.env` somewhere safe, such as a password manager. Without it, you can't connect to the database.
-- If you set `ENABLE_GEMINI=true`, you also need `GEMINI_API_KEY`. If you set `USE_REAL_EMAILER=true`, you also need `AZURE_COMMS_CONNSTR`; otherwise the app refuses to start.
+- If you set `ENABLE_GEMINI=true`, you also need `GEMINI_API_KEY`. If you set `USE_REAL_EMAILER=true`, you also need `SMTP_USERNAME` and `SMTP_PASSWORD`; otherwise the app refuses to start.
 
 ## 6. Build and start
 
@@ -156,6 +159,24 @@ docker compose ps        # db should be "healthy", app "running"
 - Open `https://waid.yourdomain.com` and check that the home page loads.
 - Sign in with `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
 - Upload a profile photo, then restart with `docker compose restart app` and check that it's still there.
+
+## Email (Amazon SES)
+
+Everything is self-hosted except outgoing email, which goes through Amazon SES's SMTP interface. The settings come from `.env`:
+
+| Variable | Default | Notes |
+|---|---|---|
+| `USE_REAL_EMAILER` | `false` | Set to `true` to send real email. When it's `false`, emails are only logged. |
+| `EMAIL_SENDER` | `noreply@jddevs.net` | The From address. Its domain must be verified in SES. |
+| `SMTP_HOST` / `SMTP_PORT` | `email-smtp.us-east-2.amazonaws.com` / `587` | The SES region of the verified domain. |
+| `SMTP_USERNAME` / `SMTP_PASSWORD` | (none) | SES SMTP credentials for a send-only IAM user. |
+
+One-time AWS setup:
+1. **Verify the domain.** Verify the sender domain in SES, publish its 3 DKIM CNAME records in DNS, and add SPF and DMARC records.
+2. **Get out of the sandbox.** The account needs SES production access, or it can only send to verified addresses.
+3. **Create send-only credentials.** Create an IAM user allowed only `ses:SendRawEmail` on that domain identity, then generate SMTP credentials for it.
+
+To switch back to Azure Communication Services, set `EMAIL_PROVIDER=Azure` and `AZURE_COMMS_CONNSTR`.
 
 ## Day-to-day
 
@@ -221,5 +242,6 @@ docker system prune                             # free disk space taken by old i
 | `network CFTunnelBridge declared as external, but could not be found` | Step 2 was skipped. Run `docker network create CFTunnelBridge`. |
 | `required variable POSTGRES_PASSWORD is missing` | `.env` isn't next to `docker-compose.yml`, or the variable is empty. |
 | The app logs `password authentication failed for user "waid"` | `POSTGRES_PASSWORD` changed after the database was created. Put the old value back. If the database is still empty, you can instead run `docker compose down -v` to delete it and start over. |
-| The app exits with `UseRealEmailerService is enabled but ...` | Set `AZURE_COMMS_CONNSTR`, or set `USE_REAL_EMAILER=false`. |
+| The app exits with `UseRealEmailerService is enabled ... SMTP is not configured` | Set `SMTP_USERNAME` and `SMTP_PASSWORD`, or set `USE_REAL_EMAILER=false`. |
+| Emails aren't arriving, and the logs show `Failed to send email` | Check that the SES domain still says *verified*, that the `EMAIL_SENDER` domain matches it, and that the SMTP credentials are SES SMTP credentials (not raw IAM access keys). |
 | `exec format error` | The OS is 32-bit. Reinstall a 64-bit Raspberry Pi OS. |
