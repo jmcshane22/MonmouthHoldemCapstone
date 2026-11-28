@@ -8,10 +8,11 @@ namespace MH.Capstone.WebApp.Controllers;
 [Route("AICompanion")]
 public class AICompanionController : Controller
 {
-    private readonly IAIService _aiService;
+    private readonly IAIService? _aiService;
     private readonly ILogger<AICompanionController> _logger;
 
-    public AICompanionController(IAIService aiService, ILogger<AICompanionController> logger)
+    // aiService is null when the EnableGeminiAIService flag is off (nothing is registered).
+    public AICompanionController(ILogger<AICompanionController> logger, IAIService? aiService = null)
     {
         _aiService = aiService;
         _logger = logger;
@@ -24,6 +25,9 @@ public class AICompanionController : Controller
     {
         if (string.IsNullOrWhiteSpace(question))
             return BadRequest(new { message = "Please enter a question." });
+
+        if (_aiService is null)
+            return StatusCode(503, new { message = "The AI Companion is turned off on this site." });
 
         try
         {
