@@ -250,7 +250,7 @@ namespace MH.Capstone.WebApp
             app.UseRouting();
 
             var rewriteOpts = new RewriteOptions()
-                .AddRedirect("github", "https://github.com/jmcshane22/MonmouthHoldemCapstone");
+                .AddRedirect("github", "https://github.com/beastmode24jd/MonmouthHoldemCapstone");
             
             app.UseRewriter(rewriteOpts);
             
