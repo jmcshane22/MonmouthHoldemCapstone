@@ -12,9 +12,11 @@ RUN dotnet publish MH.Capstone.WebApp -c Release -o /app
 FROM mcr.microsoft.com/dotnet/aspnet:9.0
 WORKDIR /app
 COPY --from=build /app .
-# Run as the image's built-in non-root user. The data-protection key folder is created
-# up front so a mounted volume inherits the right owner (keeps logins valid across redeploys).
-RUN mkdir -p /home/app/.aspnet/DataProtection-Keys && chown -R app:app /home/app/.aspnet
+# Run as the image's built-in non-root user. Writable folders are created up front so mounted
+# volumes inherit the right owner: data-protection keys (logins survive redeploys) and uploads
+# (profile photos, written by ProfileImageService under wwwroot/uploads).
+RUN mkdir -p /home/app/.aspnet/DataProtection-Keys /app/wwwroot/uploads/profiles \
+ && chown -R app:app /home/app/.aspnet /app/wwwroot/uploads
 USER app
 EXPOSE 8080
 ENTRYPOINT ["dotnet", "MH.Capstone.WebApp.dll"]

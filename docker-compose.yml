@@ -1,5 +1,10 @@
-# Self-hosted stack: Postgres + the WebApp in separate containers (e.g. on a Raspberry Pi 5).
-# Put secrets in a .env file next to this one (gitignored); see docs/self_hosting.md.
+# Self-hosted stack: Postgres + the WebApp (e.g. on a Raspberry Pi 5), published through a
+# Cloudflare Tunnel. Secrets go in a .env file next to this one (gitignored); see docs/self_hosting.md.
+#
+# Networks:
+#   backend        - private, app <-> db only. `internal: true` also blocks it from the internet.
+#   CFTunnelBridge - created outside this file; cloudflared lives there and proxies to waid-app:8080.
+# No host ports are published: the only way in is the tunnel.
 services:
   db:
     image: postgres:17
@@ -10,6 +15,8 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
     volumes:
       - pgdata:/var/lib/postgresql/data
+    networks:
+      - backend
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U waid -d waid"]
       interval: 5s
@@ -20,23 +27,41 @@ services:
     build:
       context: ./src
       dockerfile: MH.Capstone.WebApp/Dockerfile
+    image: waid-app:latest
     restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
     environment:
       ASPNETCORE_ENVIRONMENT: Production
+      # Trust X-Forwarded-Proto/For from cloudflared so the app knows requests arrived over HTTPS.
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
       Database__Provider: Postgres
       Database__MigrateOnStartup: "true"
       ConnectionStrings__DataDb: "Host=db;Database=waid;Username=waid;Password=${POSTGRES_PASSWORD}"
+      AdminAccount__Hidden__Email: ${ADMIN_EMAIL:-}
+      AdminAccount__Hidden__Password: ${ADMIN_PASSWORD:-}
       ConnectionStrings__AzureCommunicationServices: ${AZURE_COMMS_CONNSTR:-Placeholder4GitHub}
+      FeatureFlags__UseRealEmailerService: ${USE_REAL_EMAILER:-false}
       Api__External__Ninjas__ApiKey: ${NINJAS_API_KEY:-Placeholder4GitHub}
+      FeatureFlags__EnableGeminiAIService: ${ENABLE_GEMINI:-false}
       Gemini__ApiKey: ${GEMINI_API_KEY:-YOUR_KEY_HERE}
     volumes:
       - dpkeys:/home/app/.aspnet/DataProtection-Keys
-    ports:
-      - "${APP_PORT:-8080}:8080"
+      - uploads:/app/wwwroot/uploads
+    # waid-app = unique name on the shared tunnel network; the tunnel targets http://waid-app:8080
+    networks:
+      backend:
+      CFTunnelBridge:
+        aliases: [waid-app]
 
 volumes:
   pgdata:
   dpkeys:
+  uploads:
+
+networks:
+  backend:
+    internal: true
+  CFTunnelBridge:
+    external: true
