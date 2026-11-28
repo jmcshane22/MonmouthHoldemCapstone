@@ -15,11 +15,12 @@ namespace MH.Capstone.WebApp.Controllers
     public class SightingAIController : Controller
     {
         private readonly ILogger<SightingAIController> _logger;
-        private readonly IAIService _aiService;
+        private readonly IAIService? _aiService;
         private readonly ISightingsService _sightingsService;
 
+        // aiService is null when the EnableGeminiAIService flag is off (nothing is registered).
         public SightingAIController(ILogger<SightingAIController> logger,
-            IAIService aiService, ISightingsService sightingsService)
+            ISightingsService sightingsService, IAIService? aiService = null)
         {
             _logger = logger;
             _aiService = aiService;
@@ -36,6 +37,14 @@ namespace MH.Capstone.WebApp.Controllers
         [Route("Identify")]
         public async Task<IActionResult> Identify(IFormFile? image)
         {
+            if (_aiService is null)
+            {
+                return StatusCode(503, new
+                {
+                    message = "AI identification is turned off on this site. Please describe the photo manually."
+                });
+            }
+
             // Reuse CSP-122/CSP-53's existing image validation (file type + size).
             // This is the same gate the sighting upload form already uses.
             if (!_sightingsService.ValidateImage(image))

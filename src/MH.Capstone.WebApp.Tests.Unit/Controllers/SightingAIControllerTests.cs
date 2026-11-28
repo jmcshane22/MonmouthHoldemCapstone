@@ -26,8 +26,8 @@ public class SightingAIControllerTests
 
         _controller = new SightingAIController(
             _mockLogger.Object,
-            _mockAiService.Object,
-            _mockSightingsService.Object);
+            _mockSightingsService.Object,
+            _mockAiService.Object);
     }
 
     [TearDown]
@@ -41,6 +41,18 @@ public class SightingAIControllerTests
             Headers = new HeaderDictionary(),
             ContentType = "image/jpeg"
         };
+    }
+
+    [Test]
+    public async Task Identify_WhenAiServiceDisabled_Returns503WithoutValidating()
+    {
+        using var controller = new SightingAIController(_mockLogger.Object, _mockSightingsService.Object);
+
+        var result = await controller.Identify(BuildImageFile(new byte[] { 0xFF, 0xD8, 0xFF, 0xE0 }));
+
+        Assert.That(result, Is.InstanceOf<ObjectResult>());
+        Assert.That(((ObjectResult)result).StatusCode, Is.EqualTo(503));
+        _mockSightingsService.Verify(s => s.ValidateImage(It.IsAny<IFormFile>()), Times.Never);
     }
 
     [Test]
